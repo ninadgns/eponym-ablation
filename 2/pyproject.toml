@@ -1,0 +1,32 @@
+[project]
+name = "fuel-crisis-csp"
+version = "0.1.0"
+description = "Urban fuel-crisis CSP/COP solver — AI Lab Assignment 2"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "tqdm>=4.65",
+    "tabulate>=0.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov",
+]
+notebook = [
+    "jupyter>=1.0",
+    "ipykernel",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["fuel_csp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"

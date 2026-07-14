@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dhaka-pathfind"
+version = "0.1.0"
+description = "Realistic pathfinding simulation for Dhaka city (OSM + multi-factor cost + search)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "osmnx>=1.9.0",
+    "networkx>=3.2",
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+    "folium>=0.16",
+    "streamlit>=1.30",
+    "streamlit-folium>=0.18.0",
+    "typer>=0.9",
+    "pydantic>=2.5",
+    "pyyaml>=6.0",
+    "pyarrow>=15.0",
+    "scipy>=1.11",
+    "scikit-learn>=1.4",
+    "pytest>=7.4",
+]
+
+[project.optional-dependencies]
+dev = ["hypothesis>=6.100", "ruff>=0.4"]
+
+[project.scripts]
+dhaka-route = "dhaka_pathfind.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+    "slow: downloads OSM or uses full Dhaka graph",
+]
+addopts = "-q -m \"not slow\""

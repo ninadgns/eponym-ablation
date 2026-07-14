@@ -1,0 +1,11 @@
+{
+  "bbox": [
+    23.65,
+    90.3,
+    23.95,
+    90.52
+  ],
+  "network_type": "drive_service",
+  "n_nodes": 55009,
+  "n_edges": 137529
+}

@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+.env
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+
+# Data & outputs (large / generated)
+data/*.graphml
+data/*.parquet
+data/*.feather
+data/*.gpkg
+!data/.gitkeep
+!data/README.md
+outputs/*
+!outputs/.gitkeep
+!outputs/**/.gitkeep
+
+# OSMnx / cache
+cache/
+*.osm
+
+# IDE
+.idea/
+.vscode/
+
+# Streamlit
+.streamlit/secrets.toml

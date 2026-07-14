@@ -1,0 +1,31 @@
+# Named landmarks: lat/lon WGS84 (Dhaka)
+Shahbag:
+  lat: 23.7370
+  lon: 90.3955
+Motijheel:
+  lat: 23.7330
+  lon: 90.4170
+Gulshan_2:
+  lat: 23.7800
+  lon: 90.4160
+Dhanmondi_27:
+  lat: 23.7580
+  lon: 90.3750
+Farmgate:
+  lat: 23.7520
+  lon: 90.3940
+Mirpur_10:
+  lat: 23.8060
+  lon: 90.3680
+Uttara_Ajompur:
+  lat: 23.8750
+  lon: 90.3900
+Old_Dhaka_Sadarghat:
+  lat: 23.7100
+  lon: 90.4070
+Banani:
+  lat: 23.7950
+  lon: 90.4040
+Ramna_Park:
+  lat: 23.7335
+  lon: 90.3920
