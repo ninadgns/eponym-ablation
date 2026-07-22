@@ -131,9 +131,9 @@ test in Sections~\ref{sec:search}--\ref{sec:rl}. The headline in each case:
   every customary metric is one that does not charge for amortisation. We give a corresponding
   metric-audit rule.
 \item A released, deterministic testbed: four problems, four reference implementations, and
-  scripts that regenerate every table in this paper. Problems~3 and~4 carry 23 and 28 tests
-  respectively, all passing with no skips; Problems~1 and~2 carry 7 and 18, and Problem~2's are
-  not runnable from its shipped lockfile (\S\ref{sec:threats}).
+  scripts that regenerate every table in this paper. All four suites pass --- 9, 34, 23 and 28
+  tests for Problems~1--4 --- but they differ in what they pin down, and \S\ref{sec:threats} says
+  where.
 \end{enumerate}
 
 \paragraph{What this paper is not.} It is not a claim that heuristics, propagation, populations,
@@ -358,7 +358,7 @@ monotone function of it.
 
 \paragraph{The algorithm axis has a duplicate in it too.} Table~\ref{tab:weff} lists eleven rows,
 not twelve, because \texttt{dijkstra()} in this codebase is \texttt{return ucs(...)} with the result
-label overwritten (\texttt{algorithms.py:118--131}; its docstring says ``same implementation as UCS
+label overwritten (\texttt{algorithms.py:120--133}; its docstring says ``same implementation as UCS
 here \dots\ included as a separate entrypoint for coursework naming''). An earlier draft of this
 paper reported the two as separate configurations with different timings --- 295.3\,ms against
 303.4\,ms --- which was pure timing noise on identical code presented as a comparison. We merge
@@ -429,9 +429,11 @@ Only \texttt{ucs()} and \texttt{weighted\_astar()} are free of post-processing.
 \texttt{\_path\_cost()} inside their timed regions (\texttt{algorithms.py:244} and
 \texttt{:419}), because neither carries a $g$-value to the target the way uniform-cost search and
 $\mathrm{A}^*$ do, and both must therefore re-derive the path cost. That call is
-$O(\text{path length})$ and costs 0.73\,ms and 0.58\,ms on average here --- negligible beside
-$\mathrm{A}^*$'s $O(\text{path length}^2)$ term, and we leave it in place rather than claim a
-precision we do not have. $\mathrm{A}^*$'s post-processing is the one that matters: a median of
+$O(\text{path length})$ and costs 0.80\,ms and 0.88\,ms on average over the ten pairs
+(\texttt{repro/path\_cost\_probe.py}) --- negligible beside $\mathrm{A}^*$'s
+$O(\text{path length}^2)$ term, and sub-millisecond quantities on this machine are not stable to
+two digits anyway, so we leave the call in place rather than subtract it and claim a precision we
+do not have. $\mathrm{A}^*$'s post-processing is the one that matters: a median of
 26.0\,ms on these paths (range 7.0--55.2\,ms), charged to exactly one arm. We time it on the
 identical path and subtract it, so Table~\ref{tab:weff} reports search-only time for every arm to
 within the sub-millisecond residual just described.
@@ -668,7 +670,7 @@ the sweep the price is legible: cutting from three buses to two costs $1.61$, $1
 minutes of mean wait at $K = 10, 11, 12$, while a fourth bus is nominally \emph{worse} there
 ($-0.36$ to $-0.66$ minutes). At $K \geq 13$ the pattern does not hold --- the fourth bus buys
 $1.37$ minutes at $K = 13$ and $0.65$ at $K = 14$ while the third buys nothing --- and with seed
-standard deviations of $0.3$ to $2.0$ minutes, almost every one of these differences sits inside
+standard deviations of $0.25$ to $2.04$ minutes, almost every one of these differences sits inside
 the noise. The defensible statement is the narrow one: below $K = 12$ a third bus is worth roughly
 a minute and a half of mean wait and a fourth is worth nothing, and above that our 5-seed cells
 cannot separate the fleet sizes at all. Reporting penalty terms alone would have reported a
@@ -1003,14 +1005,19 @@ coverage. Under function approximation, in large or continuous state spaces, or 
 coverage, the comparison could invert. We claim the result for this regime and note that the regime
 is the one most classical MDP pedagogy actually occupies.
 
-\paragraph{Test coverage is uneven across the four problems.} Problems~3 and~4 carry 23 and 28
-tests and are the two whose algorithmic claims we lean on hardest; both suites pass with no skips,
-and both encode the load-bearing invariants directly (the budget-exactness assertion in
-\S\ref{sec:pso}, and a test that greps the $Q$-learner's own source to confirm it never reads the
-true model in \S\ref{sec:rl}). Problems~1 and~2 are weaker: 7 and 18 tests respectively, and
-Problem~2's suite is not runnable from its shipped lockfile at all, which does not list
-\texttt{pytest}. We verified Problem~2's solvers by re-running them and inspecting outputs rather
-than through its tests, and readers should weight \S\ref{sec:csp} accordingly.
+\paragraph{Test coverage is uneven across the four problems.} All four suites pass --- 9, 34, 23
+and 28 tests for Problems~1--4, no failures, no skips. What differs is what they pin down.
+Problems~3 and~4 are the two whose algorithmic claims we lean on hardest, and both encode the
+load-bearing invariants directly (the budget-exactness assertion in \S\ref{sec:pso}, and a test
+that greps the $Q$-learner's own source to confirm it never reads the true model in
+\S\ref{sec:rl}). Problem~2's tests check that every solver respects the hard constraints and that
+domains are built correctly, but none of them pins a node count or a timing, so nothing in
+\S\ref{sec:csp} is under test; we verified those numbers by re-running the solvers and inspecting
+outputs. Problem~1 is the weakest, and in a way worth naming precisely: seven of its nine tests run
+on a toy graph, and the two that touch the real Dhaka graph --- the only ones that would validate
+\S\ref{sec:search}'s instance --- are marked \texttt{slow} and deselected by the project's default
+\texttt{pytest} options, so a reader running the suite the obvious way exercises neither. They pass
+when selected explicitly.
 
 \paragraph{The synthesis is an interpretation.} \S\ref{sec:synthesis}'s reuse-asymmetry account is
 a post-hoc reading of four results, not a tested hypothesis. It generates predictions --- e.g.\ that
@@ -1047,7 +1054,10 @@ every table in this paper are released at
 \url{https://github.com/ninadgns/eponym-ablation}, on the default branch; the LaTeX source of the
 paper itself is on that repository's \texttt{paper} branch. Every experiment is seeded; every table
 reproduces exactly, except the wall-clock columns, whose ratios reproduce but whose absolute
-milliseconds are hardware-dependent.
+milliseconds are hardware-dependent. \S\ref{sec:search} is the one section whose inputs are not
+generated: it runs on a live OpenStreetMap extract, and OSM is a moving target, so the repository
+ships the exact snapshot the paper used (\texttt{1/data/dhaka\_graph.graphml.gz}, Overpass base
+timestamp 2026-04-21T12:54:14Z) rather than a script that would download a newer one.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
@@ -1059,10 +1069,14 @@ milliseconds are hardware-dependent.
 
 All experiments: Intel Core i5-1135G7 @ 2.40\,GHz (8 threads), 22\,GB
 RAM, Linux 7.0.0, Python 3.12.6. Each problem is an independent \texttt{uv} project with a
-committed lockfile. Road network: OpenStreetMap extract of the Dhaka bounding box via OSMnx
-\citep{boeing2017osmnx}, 55,009 nodes and 137,529 directed edges after simplification.
-Test suites: 23 tests (Problem~3) and 28 tests (Problem~4), no skips, both passing at the commit
-these results were generated from.
+committed lockfile. Road network: OpenStreetMap extract of the Dhaka bounding box
+($23.65$--$23.95^{\circ}$N, $90.30$--$90.52^{\circ}$E, \texttt{drive\_service}) via OSMnx 2.1.0
+\citep{boeing2017osmnx}, 55,009 nodes and 137,529 directed edges after simplification, at Overpass
+base timestamp 2026-04-21T12:54:14Z. That snapshot is committed to the repository, so the node
+counts in \S\ref{sec:search} are reproducible after OSM has moved on.
+Test suites: 9, 34, 23 and 28 tests for Problems~1--4, no skips, all passing at the commit these
+results were generated from (Problem~1's two \texttt{slow}-marked tests require
+\texttt{-m slow}; see \S\ref{sec:threats}).
 
 \section{Hyperparameter Sweep for \S\ref{sec:rl}}
 \label{app:sweep}
