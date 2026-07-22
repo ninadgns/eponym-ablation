@@ -280,10 +280,22 @@ def exp2_communication(cfg, train, gbest_runs, jobs) -> None:
         "A2_communication_tests",
     )
 
-    fig, ax = plt.subplots(figsize=(8, 5))
     evals = np.arange(1, BUDGET + 1)
-    for (name, runs), colour in zip(arms.items(), ["C3", "C1", "C0", "C2"], strict=True):
-        med, lo, hi = _curve_band([r[2] for r in runs])
+    bands = {name: _curve_band([r[2] for r in runs]) for name, runs in arms.items()}
+
+    # Persist the median/IQR bands so the paper's figure can be redrawn without re-running the
+    # optimiser. The arm labels are the CSV's column prefixes: a, b, c, d.
+    curves = {"eval": evals}
+    for name, (med, lo, hi) in bands.items():
+        arm = name[1]
+        curves[f"{arm}_median"], curves[f"{arm}_q25"], curves[f"{arm}_q75"] = med, lo, hi
+    path = TABLES / "A2_communication_curves.csv"
+    pd.DataFrame(curves).to_csv(path, index=False)
+    print(f"[saved] {path.relative_to(ROOT)} ({len(evals)} rows, median + IQR per arm)")
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for (name, colour) in zip(arms, ["C3", "C1", "C0", "C2"], strict=True):
+        med, lo, hi = bands[name]
         ax.plot(evals, med, color=colour, label=name)
         ax.fill_between(evals, lo, hi, color=colour, alpha=0.15, linewidth=0)
     ax.set_xlabel("objective evaluations (budget = 3030)")
