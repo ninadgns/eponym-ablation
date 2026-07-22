@@ -36,3 +36,13 @@ Thumbs.db
 .streamlit/secrets.toml
 
 # Per-assignment ignores (large generated data, outputs) live in 1/.gitignore
+
+# The paper source is on the `paper` branch; switching back to main leaves its build
+# artifacts behind as untracked noise. Ignore the artifacts, not the directory — a bare
+# `paper/` here would also ignore new .tex files if this ever merges into that branch.
+paper/*.aux
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.pdf
+paper/*.toc

@@ -7,5 +7,7 @@
   ],
   "network_type": "drive_service",
   "n_nodes": 55009,
-  "n_edges": 137529
+  "n_edges": 137529,
+  "osm_timestamp": "2026-04-21T12:54:14Z",
+  "osmnx_version": "2.1.0"
 }
