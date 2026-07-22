@@ -129,6 +129,19 @@ Note that `B5` runs at 1,500 episodes × 3 seeds while `B3` runs at 4,000 episod
 the two tables' absolute regrets are not comparable. The sweep selects the tuned configuration;
 the tuned configuration is then re-run at the full budget for `tab:rl-ce`.
 
+## `fig:weff`, `fig:pso` — the two figures
+
+```bash
+python repro/make_figures.py     # writes paper/figures/*.pdf
+```
+
+Both read CSVs the experiment drivers already wrote, so a figure cannot drift from the table beside
+it. `fig:weff` needs `1/outputs/results/instrumented_42.csv` and `setup_cost.csv` (from
+`instrumented_batch.py`, above); `fig:pso` needs `3/results/tables/A2_communication_curves.csv`
+(from `3/scripts/run.py`, which persists the median/IQR band per arm alongside the A2 tables).
+Neither re-runs an optimiser or a search. Output is vector PDF, not the 150-dpi PNGs in
+`3/results/plots/` — arXiv builds from source, and those PNGs keep their coursework titles.
+
 ## Tables with no script
 
 Two tables are hand-authored summaries rather than experimental output, and nothing regenerates
