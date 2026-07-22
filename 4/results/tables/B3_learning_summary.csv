@@ -1,0 +1,4 @@
+method,mean_regret_pct,sd_regret_pct,mean_action_optimality_pct,mean_coverage_pct,samples
+"Q-learning (model-free, default hyperparameters)",12.490370013624027,0.7453293582461928,65.72978303747536,68.09754348215885,400000
+"Q-learning (model-free, tuned by the B.10.5 sweep)",2.723870136650807,0.23016816565903445,,68.09754348215885,400000
+Certainty-equivalence VI (same data),1.743904728223633,0.4077572215596844,89.92603550295857,68.09754348215885,400000

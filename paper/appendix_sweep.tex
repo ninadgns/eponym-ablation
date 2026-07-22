@@ -1,0 +1,67 @@
+The sweep in Table~\ref{tab:sweep} runs at a smaller budget than the headline comparison in
+Table~\ref{tab:rl-ce} --- 1{,}500 episodes (150{,}000 transitions) and 3 seeds rather than
+4{,}000 episodes (400{,}000 transitions) and 5 seeds --- so its absolute regrets are higher
+throughout and are not directly comparable to Table~\ref{tab:rl-ce}. It is used only to
+\emph{select} the tuned configuration, which is then re-run at the full budget.
+
+Three findings are worth stating.
+
+\paragraph{Initialisation, not the step size, is the dominant lever.} $Q_0 = 0$ looks neutral but is
+strongly \emph{optimistic} in this MDP: every reward is negative, so $V^{*} < 0$ everywhere and a
+zero-initialised table over-values every unvisited action. Setting $Q_0 \approx \bar{V}^{*} = -560$
+alone moves regret from $12.60\%$ to $5.51\%$ --- more than any other single change, and more than
+the step-size exponent contributes.
+
+\paragraph{The theory's step-size requirement is visible.} The polynomial schedule
+$\alpha_n = (1+n)^{-p}$ converges and a constant $\alpha$ does not: constant $\alpha = 0.1$ and
+$\alpha = 0.5$ give $24.52\%$ and $21.80\%$ regret against $12.60\%$ for the baseline schedule.
+Within the polynomial family, larger $p$ is better here ($p = 1.0$: $8.72\%$; $p = 0.7$: $12.60\%$;
+$p = 0.5$: $17.35\%$).
+
+\paragraph{Exploring starts buy coverage, and coverage buys regret.} Removing exploring starts
+collapses state--action coverage from $51.6\%$ to $33.7\%$ and degrades regret to $14.86\%$. Since
+coverage bounds what any tabular method can know, we report it beside every learning result rather
+than only reporting regret.
+
+The $\gamma$ rows are measured against each $\gamma$'s own $V^{*}$ and so are not comparable to the
+others; they are included to show that the learning problem gets harder as the effective horizon
+lengthens, which is the expected direction.
+
+\begin{table}[h]
+\centering
+\small
+\caption{$Q$-learning hyperparameter sweep. 13 configurations $\times$ 3 seeds at
+150,000 transitions each. Baseline is $\alpha_n = (1+n)^{-0.7}$, $\epsilon$ floor $0.05$,
+$Q_0 = 0$, exploring starts on.}
+\label{tab:sweep}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Configuration} & \textbf{Mean regret} & \textbf{sd} & \textbf{Coverage} \\
+\midrule
+baseline                                   & 12.60\% & 1.46 & 51.6\% \\
+\midrule
+\multicolumn{4}{@{}l}{\itshape Step-size schedule} \\
+$\alpha$ power 0.5                         & 17.35\% & 0.93 & 51.6\% \\
+$\alpha$ power 1.0                         &  8.72\% & 0.99 & 51.4\% \\
+constant $\alpha = 0.1$                    & 24.52\% & 2.72 & 52.2\% \\
+constant $\alpha = 0.5$                    & 21.80\% & 1.04 & 52.0\% \\
+\midrule
+\multicolumn{4}{@{}l}{\itshape Exploration} \\
+$\epsilon$ floor 0.0                       & 12.10\% & 0.86 & 51.5\% \\
+$\epsilon$ floor 0.2                       & 11.65\% & 0.22 & 51.4\% \\
+$\epsilon$ floor 0.5                       & 10.81\% & 1.00 & 50.6\% \\
+no exploring starts                        & 14.86\% & 0.37 & \textbf{33.7\%} \\
+\midrule
+\multicolumn{4}{@{}l}{\itshape Initialisation} \\
+neutral $Q_0 = -560 \approx \bar{V}^{*}$   &  \textbf{5.51\%} & 0.36 & 49.8\% \\
+pessimistic $Q_0 = -2000$                  &  9.96\% & 0.21 & 45.6\% \\
+\midrule
+\textbf{tuned: $Q_0 = -560$, $\alpha$ power 1.0} & \textbf{4.78\%} & 0.14 & 49.8\% \\
+\midrule
+\multicolumn{4}{@{}l}{\itshape Discount (each measured against its own $V^{*}$; not comparable above)} \\
+$\gamma = 0.5$                             &  3.41\% & 0.08 & 52.0\% \\
+$\gamma = 0.9$                             &  8.80\% & 0.03 & 51.6\% \\
+$\gamma = 0.999$                           & 13.92\% & 1.19 & 51.4\% \\
+\bottomrule
+\end{tabular}
+\end{table}

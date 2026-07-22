@@ -1,0 +1,108 @@
+Constraint satisfaction credits its performance to two mechanisms that share the family's name:
+\emph{ordering} --- choosing which variable to instantiate next (minimum remaining values, degree
+tie-break) and which value to try first (least constraining value) --- and \emph{propagation} ---
+pruning domains after each assignment (forward checking). Both are taught as the difference between
+an exponential blow-up and a tractable search.
+
+We ran five solvers --- chronological backtracking, {\tt bt\_mrv}, {\tt bt\_lcv},
+{\tt bt\_fc\_mrv\_deg} (forward checking + MRV + degree), and min-conflicts local search
+\citep{minton1992minimizing} --- over 10 instance sizes $\times$ 8 seeds at a 5\,s budget per
+instance: 400 runs. Every run records whether it exhausted the budget, which turns out to matter
+more than anything else in this section.
+
+\subsection{The orderings do not change what gets solved}
+
+Table~\ref{tab:csp-solved} gives the outcome that the ordering literature would most expect to
+move, and it does not move. All four systematic solvers solve the same number of instances to
+within one, and pairwise they disagree on the outcome of \textbf{1 of 80 instances} --- at $n = 25$,
+seed 303, where {\tt bt\_lcv} fails and the other three succeed. That single disagreement runs
+\emph{against} the heuristic. Adding MRV, LCV, or forward checking to chronological backtracking
+changed which instances were solvable, at this budget, essentially not at all.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3.5pt}
+\caption{Left: outcomes over all 400 runs. Right: the 24 instances every solver solved, where node
+counts are uncensored and therefore meaningful; medians there, means on the left. Paired Wilcoxon
+against chronological backtracking, on node counts.}
+\label{tab:csp-solved}
+\begin{tabular}{@{}lrrrrrl@{}}
+\toprule
+& \multicolumn{3}{c}{\textbf{all 400 runs}} & \multicolumn{3}{c}{\textbf{24 commonly solved instances}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+\textbf{Solver} & \textbf{solved} & \textbf{nodes} & \textbf{time} &
+\textbf{nodes} & \textbf{time} & \textbf{vs.\ basic} \\
+\midrule
+Chronological backtracking & 27/80 & 444,111 & 3.15\,s & 13.5 & 0.09\,ms & --- \\
+\quad + MRV / degree       & 27/80 & 322,997 & 3.02\,s & 13.5 & 0.14\,ms & $+0.0$, $p = 0.27$ \\
+\quad + LCV                & 26/80 & 223,080 & 3.23\,s & 10.5 & 1.09\,ms & $-3.0$, $p = 10^{-4}$ \\
+\quad + FC + MRV + deg.\ & 27/80 & 126,481 & 3.17\,s & \phantom{0}9.0 & 1.27\,ms & $-5.0$, $p < 10^{-4}$ \\
+\midrule
+Min-conflicts (repair) & 25/80 & \textbf{119} & \textbf{0.044\,s} & \textbf{1.0} & \textbf{0.08\,ms} & $-13.5$, $p < 10^{-4}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The orderings do reduce nodes --- and make the solver slower}
+
+On the 24 instances every solver solved --- the only regime where a node count means what it is
+supposed to mean --- the ordering heuristics behave exactly as folklore predicts, and the
+improvement is statistically solid. Least-constraining-value removes a median of 3.0 nodes
+($p = 10^{-4}$) and forward checking with MRV removes 5.0 ($p < 10^{-4}$), against a median of 13.5
+for chronological backtracking. MRV on its own is the exception: a median difference of exactly
+zero ($p = 0.27$).
+
+Every one of them is slower. LCV takes $12.1\times$ and forward checking $14.1\times$ the wall clock
+of chronological backtracking on the same instances (1.09\,ms and 1.27\,ms against 0.09\,ms), and
+even MRV --- which saves no nodes at all --- costs $1.6\times$. The per-node price of computing the
+ordering and running the propagation exceeds, by an order of magnitude, the value of the nodes it
+saves. This is the same structure as \S\ref{sec:search}: the customary metric shows the eponymous
+mechanism working, and it \emph{is} working, but the metric does not charge what it costs to run.
+
+The one arm that improves both metrics simultaneously is the one that abandons systematic search.
+Min-conflicts expands a median of 1.0 node at 0.08\,ms --- as fast as chronological backtracking
+per attempt and $13.5$ nodes cheaper --- and over all 400 runs averages 119 nodes and 0.044\,s
+against 444,111 nodes and 3.15\,s: $3{,}700\times$ fewer nodes and $72\times$ less time, for
+25 solved instances against 27. It buys a $93\%$ success rate at $0.03\%$ of the search cost, by
+carrying one complete (initially infeasible) assignment forward and repairing it, rather than
+rebuilding a partial assignment prefix on every backtrack.
+
+\subsection{Under censoring, the node metric inverts}
+
+At $n \geq 30$ every systematic run exhausts the 5\,s budget and nothing is solved. Aggregate node
+counts over such runs are widely reported anyway --- our own source artifact reports them --- and
+they are worse than uninformative. When every solver stops at the same clock, its node count
+measures \emph{how fast it grinds}, not how well it prunes:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Solver} & \textbf{$n=30$} & \textbf{$n=40$} & \textbf{$n=50$} \\
+\midrule
+Chronological backtracking & 163,065 & 179,949 & 168,470 \\
+\quad + MRV / degree       & \phantom{0}82,923 & 114,392 & 117,990 \\
+\quad + LCV                & \phantom{0}64,761 & \phantom{0}60,027 & \phantom{0}35,103 \\
+\quad + FC + MRV + degree  & \phantom{0}30,066 & \phantom{0}22,951 & \phantom{0}16,588 \\
+\bottomrule
+\end{tabular}
+\\[2pt]
+\footnotesize nodes per second on fully censored cells (all runs hit the budget; none solved)
+\end{center}
+
+Forward checking's apparent $3.5\times$ node advantage in the all-runs column of
+Table~\ref{tab:csp-solved} is therefore not a pruning result at all: it is $10.2\times$ lower
+throughput measured against a shared stopwatch. Under censoring the sign of the metric's meaning
+flips --- fewer nodes indicates a \emph{slower} solver, not a better-pruned tree --- and the two
+cases are indistinguishable in the reported number. Any scaling curve of nodes against $n$ that
+crosses into a censored regime without saying so is reporting throughput and calling it efficiency.
+
+\subsection{Verdict}
+
+Ordering and propagation do what they claim to do, measured in the unit the field uses, on the
+instances where that unit is well defined. They also cost $12$--$14\times$ more wall clock than they
+save at these sizes, change which instances are solvable in 1 case out of 80 (and that one
+adversely), and produce node counts at larger sizes that measure the opposite of what they appear
+to. The mechanism that actually changes the cost of solving these instances by orders of magnitude
+is the one the family is not named for.

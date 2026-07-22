@@ -1,0 +1,2 @@
+comparison,wilcoxon_W,p_value,median_diff_J
+"PSO vs demand-proportional, paired over 30 held-out realisations",0.0,1.862645149230957e-09,-6.714453358459615

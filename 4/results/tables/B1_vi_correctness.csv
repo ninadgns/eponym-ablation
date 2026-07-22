@@ -1,0 +1,2 @@
+states,legal_pairs,sweeps_to_converge,seconds,empirical_contraction_rate,gamma,contraction_abs_error,crosscheck_max_abs_diff,V_star_mean
+7098,11154,2528,3.7667000490000646,0.9898071939912757,0.99,0.00019280600872428888,4.903654371446464e-09,-561.3905464817894

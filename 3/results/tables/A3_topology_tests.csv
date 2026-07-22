@@ -1,0 +1,3 @@
+test,statistic,p_value,note
+"Wilcoxon signed-rank (location, paired)",59.0,0.0001528710126876831,H0: gbest and ring have the same median final J
+Levene (variance),0.47457523150708697,0.49363648051817277,H0: equal variance across seeds

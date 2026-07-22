@@ -1,0 +1,5 @@
+comparison,wilcoxon_W,p_value,median_diff
+"(b) 30 particles, c2=0 (no sharing)  vs  (d) random search (reference)",172.0,0.22064675763249397,-0.5719917220865653
+"(c) 30 particles sharing one gbest  vs  (b) 30 particles, c2=0 (no sharing)",1.0,3.725290298461914e-09,-7.610166975001459
+"(c) 30 particles sharing one gbest  vs  (a) 1 particle, whole budget alone",0.0,1.862645149230957e-09,-10.18309533213749
+"(a) 1 particle, whole budget alone  vs  (d) random search (reference)",52.0,7.056817412376404e-05,1.2275975085033792
