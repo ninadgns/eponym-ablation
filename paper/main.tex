@@ -424,12 +424,17 @@ essentially zero for the uninformed methods.
 \texttt{\_suffix\_costs()} --- an $O(\text{path length}^2)$ re-evaluation of the multi-factor edge
 cost --- plus a per-path-node heuristic evaluation \emph{inside} its timed region, to produce the
 \texttt{heuristic\_mean\_abs\_gap} diagnostic (\texttt{algorithms.py:288--303}).
-\texttt{ucs()}, \texttt{weighted\_astar()} and \texttt{greedy\_best\_first()} do no post-processing
-at all. Comparing their reported times therefore compares different regions, and the asymmetry
-falls entirely on the arm we were measuring. It is worth a median of 26.0\,ms on these paths
-(range 7.0--55.2\,ms), which on the $\mathrm{A}^*$ arm is not a rounding error. We time that
-post-processing on the identical path and subtract it, so Table~\ref{tab:weff} reports search-only
-time for every arm.
+Only \texttt{ucs()} and \texttt{weighted\_astar()} are free of post-processing.
+\texttt{bidirectional\_ucs()} and \texttt{greedy\_best\_first()} each call
+\texttt{\_path\_cost()} inside their timed regions (\texttt{algorithms.py:244} and
+\texttt{:419}), because neither carries a $g$-value to the target the way uniform-cost search and
+$\mathrm{A}^*$ do, and both must therefore re-derive the path cost. That call is
+$O(\text{path length})$ and costs 0.73\,ms and 0.58\,ms on average here --- negligible beside
+$\mathrm{A}^*$'s $O(\text{path length}^2)$ term, and we leave it in place rather than claim a
+precision we do not have. $\mathrm{A}^*$'s post-processing is the one that matters: a median of
+26.0\,ms on these paths (range 7.0--55.2\,ms), charged to exactly one arm. We time it on the
+identical path and subtract it, so Table~\ref{tab:weff} reports search-only time for every arm to
+within the sub-millisecond residual just described.
 
 An earlier draft did not do this, and consequently reported $\mathrm{A}^*$'s per-node cost as
 29.60\,$\mu$s against uniform-cost search's 20.04\,$\mu$s --- a $1.48\times$ per-node penalty
@@ -468,17 +473,59 @@ was an artifact of our own instrumentation (\S\ref{sec:search-basis}), and the h
 much less impressive. The interesting mispricing in this family is the setup, not the per-node
 cost.
 
-\paragraph{(ii) The advantage is real and amortisable, and the break-even depends entirely on the
-baseline.} The setup constant depends only on the graph, the traveller context, and the cost preset
---- not on the query --- so hoisting it out of the query loop is legitimate for any workload that
-issues repeated queries in one context. Against uniform-cost search, $\mathrm{A}^*$+admissible saves
-136.6\,ms of search per query, so the 1599\,ms setup pays for itself after $11.7$ queries; weighted
-$\mathrm{A}^*$+fast breaks even after $7.6$. Against bidirectional uniform-cost search the picture
-is very different: it searches in 155.4\,ms, barely slower than $\mathrm{A}^*$+admissible's
-146.1\,ms, so that pairing needs $172$ queries to amortise, while weighted $\mathrm{A}^*$+fast needs
-$19.3$. A previous draft claimed $\mathrm{A}^*$+admissible \emph{never} breaks even against
-bidirectional search; on the corrected timings that is wrong --- it does, just two orders of
-magnitude later than against the weaker baseline.
+\paragraph{(ii) The advantage amortises, but only against baselines the data can separate.} The
+setup constant depends only on the graph, the traveller context, and the cost preset --- not on the
+query --- so hoisting it out of the query loop is legitimate for any workload issuing repeated
+queries in one context. A break-even is then 1599\,ms divided by the per-query search saving: a
+large constant over a difference of two noisy quantities, which is the most noise-amplifying form
+in the table and must not be reported as a point estimate. We give each comparison as a paired
+result over the ten landmark pairs, with the break-even evaluated at both ends of a 95\% confidence
+interval on the saving (Table~\ref{tab:breakeven}).
+
+\begin{table}[t]
+\centering
+\small
+\caption{Per-query search saving, paired over 10 landmark pairs (median of 5 repetitions each), and
+the resulting break-even against the 1599\,ms setup. The last row is the one comparison this data
+cannot resolve.}
+\label{tab:breakeven}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llrrlr@{}}
+\toprule
+\textbf{Arm} & \textbf{Baseline} & \textbf{faster on} & \textbf{saving} &
+\textbf{95\% CI} & \textbf{break-even} \\
+\midrule
+Weighted $\mathrm{A}^*$+fast & UCS           & 10/10 & $+210.3$ & $[+137,\,+283]$ & 6--12 queries \\
+$\mathrm{A}^*$+admissible    & UCS           & 10/10 & $+136.5$ & $[+80,\,+193]$  & 8--20 queries \\
+Weighted $\mathrm{A}^*$+fast & bidirectional & 10/10 & $+83.1$  & $[+53,\,+113]$  & 14--30 queries \\
+\midrule
+$\mathrm{A}^*$+admissible    & bidirectional & \textbf{5/10} & $+9.3$ & $[-18,\,+37]$ &
+\textbf{unidentifiable} \\
+\bottomrule
+\end{tabular}
+\\[2pt]
+\footnotesize saving in ms per query; Wilcoxon $W = 0$, $p = 0.002$ on the first three rows,
+$W = 19$, $p = 0.43$ on the last
+\end{table}
+
+The first three comparisons are unambiguous: the informed arm is faster on every one of the ten
+pairs, and the setup repays within a few dozen queries. The fourth is not.
+$\mathrm{A}^*$+admissible beats bidirectional uniform-cost search on 5 of 10 pairs; the mean saving
+is 9.3\,ms against a standard deviation of 38.6\,ms, and the confidence interval spans zero, so the
+implied break-even runs from about 43 queries at one end to \emph{never} at the other.
+
+This dispersion is not repetition noise that more timing runs would average away. On pair~5
+$\mathrm{A}^*$ is 56.8\,ms \emph{slower} and on pair~8 it is 68.1\,ms faster, with
+within-configuration spreads of $3$--$8\%$ on both: the query geometry, not the clock, decides which
+algorithm wins. Resolving a 9.3\,ms difference at this dispersion would take roughly 135 landmark
+pairs at $80\%$ power; we have ten.
+
+The defensible statement is therefore: \textbf{at ten query pairs, $\mathrm{A}^*$+admissible and
+bidirectional uniform-cost search are indistinguishable in search time, and their break-even is
+unidentifiable from this data.} An earlier draft claimed $\mathrm{A}^*$ \emph{never} breaks even
+against bidirectional search; a second draft, correcting that, claimed 172 queries. Both were
+unsupported --- the first in sign, the second in precision --- and both came from dividing a large
+constant by an unstable difference. The retraction is to ``we cannot tell,'' not to another number.
 
 \paragraph{(iii) The fastest exact method in the study is uninformed.} Bidirectional uniform-cost
 search returns provably optimal paths on 10/10 queries in 155.4\,ms total --- $10.8\times$ faster
@@ -493,9 +540,10 @@ The heuristic in this study is one scalar. Its benefit is real, and on a per-nod
 close to free ($1.11\times$). What it is not is free \emph{per context}: $91.6\%$ of an informed
 query's runtime is an $O(|E|)$ calibration that the customary metric prices at zero, which
 reverses the ranking against uniform-cost search by $6.18\times$ for a single query and takes
-$11.7$ queries to repay. And for single-query exact routing the mechanism that actually wins is
-bidirectional expansion --- structure, not information --- which no amount of query volume is
-needed to justify.
+8--20 queries to repay. And for single-query exact routing the mechanism that actually wins is
+bidirectional expansion --- structure, not information --- which needs no query volume to justify,
+and which at ten query pairs we cannot distinguish from $\mathrm{A}^*$ on search time even after
+$\mathrm{A}^*$'s setup is forgiven entirely.
 
 \section{Constraint Satisfaction: The Orderings Do Not Change What Gets Solved}
 \label{sec:csp}
@@ -779,9 +827,10 @@ and reused many times}, while the eponym's cost is paid per unit of work.
 \begin{itemize}[leftmargin=1.4em, itemsep=3pt]
 \item \textbf{Search.} The heuristic's information is a global constant obtained by one $O(|E|)$
   reduction. Its cost is per-context; its benefit is per-query. At one query it loses by
-  $6.18\times$; past 12 queries against uniform-cost search, or 172 against bidirectional search,
-  it wins. Node counting reports the $n \to \infty$ limit unconditionally, and never names either
-  the assumption or the baseline it is relative to.
+  $6.18\times$; against uniform-cost search it repays somewhere between 8 and 20 queries, and
+  against bidirectional search our data cannot say whether it repays at all. Node counting reports
+  the $n \to \infty$ limit unconditionally, and names neither the assumption nor the baseline the
+  claim is relative to.
 \item \textbf{Constraints.} Systematic search reconstructs a partial assignment prefix on every
   backtrack; repair carries one complete assignment forward and reuses it across every step. The
   reused object is the assignment itself, which is why min-conflicts settles in a median of one
@@ -847,8 +896,11 @@ The four cases suggest a checklist that costs little and would have caught all o
   propagators, and larger populations all do --- the metric is not comparable across arms without
   reporting the per-unit cost too.
 \item \textbf{Charge setup.} Report any per-context precomputation separately, and state the query
-  volume at which it amortises. ``$\mathrm{A}^*$ is $2.15\times$ better'' and
-  ``$\mathrm{A}^*$ pays off after 17 queries'' are different claims; only the second is actionable.
+  volume at which it amortises, \emph{with an interval}. ``$\mathrm{A}^*$ is $2.15\times$ better''
+  and ``$\mathrm{A}^*$ repays its setup within 8--20 queries against uniform-cost search, and within
+  an interval we cannot bound against bidirectional search'' are different claims; only the second
+  is actionable, and only the interval form is honest when a break-even is a constant divided by a
+  difference (\S\ref{sec:search}).
 \item \textbf{Ablate the eponym, not just the hyperparameters.} Sever the named mechanism at fixed
   budget while holding the random stream fixed. In \S\ref{sec:pso} this cost one line
   ($c_2 = 0$, with $r_2$ still drawn) and produced the paper's cleanest result.
@@ -873,9 +925,9 @@ reversals and reversals are fragile.
 \S\ref{sec:search} is a statement about \emph{this} implementation: pure Python, NetworkX
 adjacency, a cost function evaluated per edge without caching. \citet{burns2012implementing} show
 heuristic-search timings varying by an order of magnitude with implementation quality. A compiled
-implementation, or one that caches per-edge costs, would shrink the 1.57\,s setup and
-move the break-even below 17 queries; a vectorised reduction could plausibly remove it almost
-entirely. What is \emph{not} implementation-dependent is the structural point: the setup is
+implementation, or one that caches per-edge costs, would shrink the 1.60\,s setup and move the
+break-even below the 8--20 queries we measure against uniform-cost search; a vectorised reduction
+could plausibly remove it almost entirely. What is \emph{not} implementation-dependent is the structural point: the setup is
 $O(|E|)$ and the search is $O(\text{nodes expanded})$, these scale differently, and node counting
 prices the first at zero. The magnitude is ours; the asymmetry is not.
 
@@ -904,9 +956,13 @@ would appear in all four. All timings are from a single laptop-class machine
 ratios, not absolutes.
 
 \paragraph{Statistical power.} \S\ref{sec:search} uses 10 query pairs and reports means without
-tests. The headline effect is large ($6.18\times$) and the invariance result is exact, but the
-timing means are medians over five repetitions with a run-to-run spread of 6--21\%, and we report
-no confidence intervals on them. \S\ref{sec:pso} uses 30 paired seeds, adequate for the reported
+tests, and its timing figures are medians over five repetitions with a run-to-run spread of
+6--21\%. The headline reversal ($6.18\times$) is far larger than that dispersion and the invariance
+result is exact, so neither is at risk. Where a claim does turn on a \emph{difference} of two
+timings --- the break-even analysis --- we report paired tests and confidence intervals
+(Table~\ref{tab:breakeven}), and one of the four comparisons there is not resolvable at $n = 10$;
+we say so rather than quote its point estimate. Table~\ref{tab:weff}'s remaining columns carry no
+intervals and should be read as descriptive. \S\ref{sec:pso} uses 30 paired seeds, adequate for the reported
 effects but explicitly \emph{inadequate} for the ring-variance question, which we therefore decline
 to claim. \S\ref{sec:rl} uses 5 seeds. The $1.74\%$ vs $2.72\%$ gap is $2.96$ pooled standard deviations, or
 $d_z = 1.73$ paired --- the paired figure being the appropriate one, since the seeds are matched.

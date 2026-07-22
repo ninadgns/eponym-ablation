@@ -111,12 +111,8 @@ print(f"per-node: UCS {1000*ucs['search']/ucs['nodes']:.2f} us | "
       f"wA*+adm {1000*wa_adm['search']/wa_adm['nodes']:.2f} us")
 print(f"setup is {100*astar['setup']/astar['total']:.1f}% of A*'s total runtime")
 
-for name, base in (("UCS", ucs), ("bidirectional UCS", bi)):
-    for lbl, arm in (("A*+admissible", astar), ("wA*+fast", wa_fast)):
-        save = base["search"] - arm["search"]
-        verdict = (f"{arm['setup']/save:.1f} queries" if save > 0
-                   else "never (slower even excluding setup)")
-        print(f"break-even {lbl:14} vs {name:18} = {verdict}")
+# break-even is reported by the paired analysis at the end of this file,
+# not as a point estimate -- see the comment there.
 
 exact = {k: s for k, s in summary.items() if s["n_opt"] == s["n"]}
 best = min(exact.items(), key=lambda kv: kv[1]["total"])
@@ -127,3 +123,38 @@ print(f"fastest exact informed: {best_inf[0][0]}+{best_inf[0][1]} at {best_inf[1
 print(f"\nucs vs dijkstra -- dijkstra() is `return ucs(...)` with the label overwritten: "
       f"nodes {ucs['nodes']:.0f} vs {dij['nodes']:.0f}, "
       f"search {ucs['search']:.1f} vs {dij['search']:.1f} ms (timing noise on identical code)")
+
+# --- paired break-even analysis (Table 4) -----------------------------------
+# A break-even is SETUP / (per-query saving): a large constant over a difference of two
+# noisy timings. Point estimates of it are not trustworthy, so we pair over landmark
+# pairs and evaluate the break-even at both ends of a 95% CI on the saving.
+import math
+from scipy.stats import wilcoxon, t as tdist
+
+per_pair = {k: {p: st.median(float(x["search_ms"]) for x in reps)
+                for p, reps in pairs.items()}
+            for k, pairs in by.items()}
+
+print("\n--- paired break-even analysis ---")
+print(f"{'arm':30}{'baseline':16}{'faster':>8}{'saving':>9}{'95% CI':>18}{'break-even':>16}")
+COMPARISONS = [
+    (("weighted_astar", "fast"), ("ucs", "n/a")),
+    (("astar", "admissible"), ("ucs", "n/a")),
+    (("weighted_astar", "fast"), ("bidirectional_ucs", "n/a")),
+    (("astar", "admissible"), ("bidirectional_ucs", "n/a")),
+]
+for arm, base in COMPARISONS:
+    a, b = per_pair[arm], per_pair[base]
+    pids = sorted(b, key=int)
+    d = [b[p] - a[p] for p in pids]
+    w, pw = wilcoxon([b[p] for p in pids], [a[p] for p in pids])
+    m, sd = st.mean(d), st.stdev(d)
+    half = tdist.ppf(0.975, len(d) - 1) * sd / math.sqrt(len(d))
+    lo, hi = m - half, m + half
+    be = ("unidentifiable" if lo <= 0 else f"{SETUP/hi:.0f}-{SETUP/lo:.0f} queries")
+    label = f"{arm[0]}+{arm[1]}" if arm[1] != "n/a" else arm[0]
+    print(f"{label:30}{base[0]:16}{sum(1 for x in d if x>0):>5}/10{m:+9.1f}"
+          f"{f'[{lo:+.0f}, {hi:+.0f}]':>18}{be:>16}   W={w:.0f} p={pw:.3f}")
+    if lo <= 0:
+        n80 = (1.96 + 0.8416) ** 2 / (m / sd) ** 2
+        print(f"{'':30}sd={sd:.1f} ms; would need ~{n80:.0f} pairs at 80% power, we have {len(d)}")
