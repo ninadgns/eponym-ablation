@@ -68,6 +68,28 @@ def download_graph(
     raise last
 
 
+def osm_snapshot_timestamp() -> str | None:
+    """
+    The ``timestamp_osm_base`` Overpass reports for the data it served, recovered from OSMnx's
+    response cache.
+
+    OSM is a moving target: the same bbox downloaded on two dates gives two different graphs, and
+    every node count in the paper is conditional on one snapshot. Overpass stamps each response
+    with the snapshot it was served from; OSMnx caches the raw response but does not surface the
+    stamp, so we read it back out. Returns ``None`` if the cache has been cleared.
+    """
+    try:
+        stamps = []
+        for f in Path(ox.settings.cache_folder).glob("*.json"):
+            with open(f, encoding="utf-8") as fh:
+                ts = json.load(fh).get("osm3s", {}).get("timestamp_osm_base")
+            if ts:
+                stamps.append(str(ts))
+        return max(stamps) if stamps else None
+    except (OSError, ValueError):
+        return None
+
+
 def save_graph(graph: nx.MultiDiGraph, path: Path) -> None:
     ensure_data_dir()
     ox.save_graphml(graph, path)
@@ -76,6 +98,8 @@ def save_graph(graph: nx.MultiDiGraph, path: Path) -> None:
         "network_type": DEFAULT_NETWORK_TYPE,
         "n_nodes": graph.number_of_nodes(),
         "n_edges": graph.number_of_edges(),
+        "osm_timestamp": osm_snapshot_timestamp(),
+        "osmnx_version": ox.__version__,
     }
     with open(_metadata_path(path), "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
@@ -94,11 +118,18 @@ def load_or_download(
     """
     Return Dhaka road graph: from cache if present unless ``force_download``.
 
-    Persists to ``data/dhaka_graph.graphml`` on first download.
+    Prefers ``data/dhaka_graph.graphml``; falls back to the gzipped copy tracked in git
+    (``data/dhaka_graph.graphml.gz``, read transparently by ``ox.load_graphml``) so that a fresh
+    clone reproduces §4 against the same OSM snapshot instead of downloading a newer one.
+    Downloads only when neither exists, and persists to the uncompressed path.
     """
     path = graphml or (DATA_DIR / GRAPHML_FILENAME)
-    if not force_download and path.exists():
-        return load_graph_from_file(path)
+    packed = path.with_name(path.name + ".gz")
+    if not force_download:
+        if path.exists():
+            return load_graph_from_file(path)
+        if packed.exists():
+            return load_graph_from_file(packed)
 
     g = download_graph(bbox=bbox, network_type=network_type)
     save_graph(g, path)

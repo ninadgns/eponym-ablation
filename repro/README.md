@@ -21,11 +21,17 @@ grep -oE '\\newlabel\{tab:[a-z-]+\}\{\{[0-9]+\}' paper/main.aux \
 
 Each assignment is an independent [uv](https://github.com/astral-sh/uv) project. Sync before use.
 
+One input is not generated: §4 runs on a live OpenStreetMap extract, and OSM is edited
+continuously, so the snapshot the paper used is committed at `1/data/dhaka_graph.graphml.gz`
+(Overpass base timestamp `2026-04-21T12:54:14Z`). `load_or_download()` reads it without unpacking.
+Nothing downloads unless you pass `force_download=True`, which would give you a *newer* graph and
+different node counts — see `1/data/README.md`.
+
 ## `tab:weff`, `tab:breakeven` — informed search (§4)
 
 ```bash
 cd 1 && uv sync
-uv run python scripts/instrumented_batch.py     # ~4 min; needs data/dhaka_graph.graphml
+uv run python scripts/instrumented_batch.py     # ~4 min
 uv run python ../repro/search_analyze.py
 ```
 
@@ -39,9 +45,12 @@ uv run python ../repro/search_analyze.py
 2. **The timed regions were not the same region.** `astar()` computes `_suffix_costs()` — an
    O(path_len²) re-evaluation of the multi-factor edge cost — plus a per-path-node heuristic
    evaluation *inside* its timed region, for the `heuristic_mean_abs_gap` diagnostic
-   (`algorithms.py:288-303`). `ucs()`, `weighted_astar()` and `greedy_best_first()` do no
-   post-processing at all. Worth a median of 26 ms, all of it charged to one arm. We time it on
-   the identical path and subtract.
+   (`algorithms.py:288-303`). Worth a median of 26 ms, all of it charged to one arm. We time it on
+   the identical path and subtract. Only `ucs()` and `weighted_astar()` are free of
+   post-processing: `bidirectional_ucs()` and `greedy_best_first()` each call `_path_cost()`
+   inside their timed regions too (`algorithms.py:244` and `:419`), because neither carries a
+   g-value to the target. That call is O(path_len) and costs well under a millisecond — see
+   `path_cost_probe.py` below — so we measure it but leave it in.
 3. **Single-shot timings.** Search times vary 6–21% run to run. We take 5 repetitions per
    (pair, configuration) and report medians, with the aux build memoised so repetitions measure
    search rather than setup.
@@ -56,6 +65,13 @@ rather than printing a point estimate.
 
 Outputs land in `1/outputs/results/`: `instrumented_42.csv`, `setup_cost.csv`,
 `greedy_invariance.csv`, `astar_postproc.csv`.
+
+The two `_path_cost()` figures quoted in §4.2 come from a separate probe, which re-runs only the
+two affected arms on the same ten pairs so that the headline timings are not disturbed:
+
+```bash
+cd 1 && uv run python ../repro/path_cost_probe.py     # ~1 min
+```
 
 ## `tab:csp-solved` — constraint satisfaction (§5)
 
@@ -91,8 +107,11 @@ cd 3 && uv sync
 
 Outputs: `3/results/tables/A{1..5}*.csv`. `tab:pso-ablation` is `A2_communication_ablation.csv`
 plus `A2_communication_tests.csv`; `tab:pso-gen` is `A4_generalisation.csv`; the topology and
-sensitivity numbers in §6.2 are `A3_topology*.csv` and `A5_sensitivity.csv`. The convergence
-summary `A1_convergence_summary.csv` backs the GA-beats-PSO comparison in §6.2.
+sensitivity numbers in §6.2 are `A3_topology*.csv` and `A5_sensitivity.csv`.
+`A1_convergence_summary.csv` and `A1_convergence_tests.csv` back the GA-beats-PSO comparison in
+§6.2 (W = 106, p = 0.008) — and note that §6.1's margin of PSO *against random search* (9.05 min,
+p = 1.9e−9) is in `A1_convergence_tests.csv` too, not in the A2 pair the ablation table is keyed
+to.
 
 ## `tab:rl-baselines`, `tab:rl-ce`, `tab:sweep` — reinforcement learning (§7, Appendix B)
 

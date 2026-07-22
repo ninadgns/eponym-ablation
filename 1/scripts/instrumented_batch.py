@@ -13,9 +13,12 @@ script fixes:
 2. **The timed regions are not the same region.** ``astar()`` computes ``_suffix_costs()`` --- an
    O(path_len^2) re-evaluation of the multi-factor edge cost --- plus a per-path-node heuristic
    evaluation *inside* its timed region, for the ``heuristic_mean_abs_gap`` diagnostic
-   (``algorithms.py:288-303``). ``ucs()``, ``weighted_astar()`` and ``greedy_best_first()`` do no
-   post-processing at all. We time that post-processing on the identical path and subtract it, so
-   every arm reports search-only time.
+   (``algorithms.py:288-303``). We time that post-processing on the identical path and subtract
+   it. Only ``ucs()`` and ``weighted_astar()`` are then free of post-processing:
+   ``bidirectional_ucs()`` and ``greedy_best_first()`` each call ``_path_cost()`` inside their
+   timed regions too (``algorithms.py:244`` and ``:419``), which is O(path_len) and costs well
+   under a millisecond -- measured by ``repro/path_cost_probe.py``, and left in place rather than
+   subtracted.
 
 3. **Single-shot timings.** Search times vary by tens of percent run to run on a laptop. We take
    ``REPS`` repetitions per (pair, configuration) and report the median, with the aux build
