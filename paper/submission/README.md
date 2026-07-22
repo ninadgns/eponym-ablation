@@ -19,12 +19,20 @@ python3 -c "t=open('paper/submission/abstract.txt').read().rstrip('\n'); print(l
 ## Submitting
 
 - **Primary category:** cs.AI. Reasonable cross-list: cs.NE (the PSO/GA ablation) or cs.SE.
-- **Upload:** the `paper/` directory's `.tex`, `.bbl`, `refs.bib`, and the two `\input` files
-  (`section_csp.tex`, `appendix_sweep.tex`) — all of which are on **this branch only**; main
-  carries the code and `repro/`. arXiv does **not** run BibTeX, so `main.bbl` must be in the
-  tarball — it is tracked in git for exactly this reason. `main.pdf` is untracked and must not be
-  uploaded; arXiv builds from source and rejects a PDF bundled with TeX input. Exclude the hidden
-  `.gitignore` too: arXiv rejects dotfiles.
+- **Upload:** the `paper/` directory's `.tex`, `.bbl`, `refs.bib`, the two `\input` files
+  (`section_csp.tex`, `appendix_sweep.tex`), and `figures/weff.pdf` + `figures/pso_ablation.pdf`
+  — all of which are on **this branch only**; main carries the code and `repro/`. arXiv does
+  **not** run BibTeX, so `main.bbl` must be in the tarball — it is tracked in git for exactly this
+  reason. Keep the figures in a `figures/` subdirectory; `\graphicspath{{figures/}}` in the
+  preamble means the `\includegraphics` calls carry no path and resolve either way. The figures
+  are vector PDFs, which pdflatex takes directly. `main.pdf` is untracked and must not be
+  uploaded; arXiv builds from source and rejects a PDF bundled with TeX input, and a figure named
+  `main.pdf` would collide besides. Exclude the hidden `.gitignore` too: arXiv rejects dotfiles.
+
+  ```bash
+  cd paper && tar czf ../submission.tar.gz \
+    main.tex section_csp.tex appendix_sweep.tex main.bbl refs.bib figures/*.pdf
+  ```
 - **Endorsement:** a first cs.AI submission may need one. Any author with cs.AI arXiv history can
   endorse.
 - **Institutional email:** register/verify the DU address; arXiv gates submission on it.

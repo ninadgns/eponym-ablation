@@ -4,3 +4,10 @@
 *.blg
 *.toc
 *.pdf
+
+# ...but the figures are source, not build output: repro/make_figures.py emits them from the
+# experiment CSVs, and they have to go in the arXiv tarball. The `*.pdf` above would take them.
+!figures/*.pdf
+
+# Rasterised previews, for eyeballing a figure without a PDF viewer. Never committed.
+figures/*.png

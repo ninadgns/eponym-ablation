@@ -3,6 +3,8 @@
 \usepackage[margin=1.1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{booktabs}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
 \usepackage{microtype}
 \usepackage{caption}
 \usepackage{enumitem}
@@ -349,7 +351,8 @@ returns \emph{byte-identical paths} under all three heuristics (10/10), expandin
 incurring $30.754\%$ suboptimality in every case. The three-heuristic portfolio is, for this
 algorithm, one heuristic.
 
-Table~\ref{tab:weff} orders every configuration by $\weff$. Both node count and search time are
+Table~\ref{tab:weff} and Figure~\ref{fig:weff} order every configuration by $\weff$. Both node
+count and search time are
 \emph{perfectly} rank-correlated with the scalar (Spearman $\rho = -1.0000$ for each over the six
 distinct finite-weight configurations), and suboptimality is monotone non-decreasing
 ($\rho = +0.845$, with four exact ties at zero). What was presented as a $3 \times 3$ grid of
@@ -398,6 +401,22 @@ Greedy best-first + fast       & $\infty$ & 120 & \phantom{00}2.5 & 1599.4 & 160
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{weff.pdf}
+\caption{The $3 \times 3$ grid of algorithms and heuristics is one axis
+(Prop.~\ref{prop:weight}). Every informed configuration lies on a single monotone sweep in
+$\weff$, with uniform-cost search at $\weff = 0$ and all three greedy configurations coincident at
+$\weff = \infty$ (Prop.~\ref{prop:greedy}); the dotted segment marks the jump to that limit. Open
+markers are arms that returned a suboptimal path on at least one of the ten queries --- the node
+count keeps falling past $\weff \approx 2.5$, but it is no longer buying the same product.
+Bidirectional uniform-cost search (diamond) also sits at $\weff = 0$ but is not on the sweep: it is
+a different algorithm, and it is the fastest exact one here. \emph{Right:} the dashed line is the
+one-off $O(|E|)$ heuristic setup. Every search time in the study falls below it, which is the
+mispricing in one picture --- the node metric charges for the points and not for the line.}
+\label{fig:weff}
+\end{figure}
 
 This is not a defect peculiar to this testbed; it is the default outcome of the standard
 instruction to supply ``one admissible and two inadmissible heuristics'' for a geometric domain,
@@ -593,7 +612,22 @@ signed-rank against random search.}
 \end{tabular}
 \end{table}
 
-The answer is unusually clean. Thirty independent searchers are worth \emph{nothing} over a single
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{pso_ablation.pdf}
+\caption{The communication ablation of Table~\ref{tab:pso-ablation}, drawn against the axis the
+budget is denominated in: median best-so-far over 30 paired seeds, with the inter-quartile band.
+Every arm terminates at the same 3{,}030 evaluations, so horizontal position is a matched resource
+rather than a matched iteration count. Arms~(b) and~(d) --- thirty non-communicating particles and
+a single random sampler --- are all but superimposed for the whole run, which is what
+$p = 0.22$ looks like; arm~(a), one particle spending the budget alone, is worse than both. Only
+arm~(c), which differs from~(b) in the single coefficient $c_2$ and consumes the identical random
+stream, separates.}
+\label{fig:pso}
+\end{figure}
+
+The answer is unusually clean, and Figure~\ref{fig:pso} shows it without the table. Thirty
+independent searchers are worth \emph{nothing} over a single
 random sampler at the same budget: arm~(b) versus arm~(d) gives $p = 0.22$. The point estimates do
 nominally favour the non-communicating swarm (median $23.79$ against $24.56$; paired median
 difference $-0.57$ minutes), but the effect is not distinguishable from zero at 30 seeds, and it is
