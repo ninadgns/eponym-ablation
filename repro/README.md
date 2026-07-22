@@ -14,14 +14,27 @@ uv run python scripts/instrumented_batch.py     # ~4 min; needs data/dhaka_graph
 uv run python ../repro/search_analyze.py
 ```
 
-`instrumented_batch.py` separates heuristic **setup** cost from **search** cost, which the stock
-batch driver (`dhaka_pathfind.analysis.batch`) folds together. Both halves are already recorded by
-the library — `SearchResult.metrics.runtime_ms` starts its clock *after* `build_heuristic_aux` — so
-no library change is needed. It also writes `greedy_invariance.csv`, the check behind
-Proposition 1.
+`instrumented_batch.py` fixes three measurement problems in the stock batch driver
+(`dhaka_pathfind.analysis.batch`):
 
-Outputs land in `1/outputs/results/`:
-`instrumented_42.csv`, `setup_cost.csv`, `greedy_invariance.csv`.
+1. **Setup folded into search.** `build_heuristic_aux` runs two full O(|E|) passes before an
+   informed search expands anything. The driver's outer clock includes it; the library's own
+   `SearchResult.metrics.runtime_ms` excludes it (its timer starts after the aux build). We record
+   both, and time the aux build separately.
+2. **The timed regions were not the same region.** `astar()` computes `_suffix_costs()` — an
+   O(path_len²) re-evaluation of the multi-factor edge cost — plus a per-path-node heuristic
+   evaluation *inside* its timed region, for the `heuristic_mean_abs_gap` diagnostic
+   (`algorithms.py:288-303`). `ucs()`, `weighted_astar()` and `greedy_best_first()` do no
+   post-processing at all. Worth a median of 26 ms, all of it charged to one arm. We time it on
+   the identical path and subtract.
+3. **Single-shot timings.** Search times vary 6–21% run to run. We take 5 repetitions per
+   (pair, configuration) and report medians, with the aux build memoised so repetitions measure
+   search rather than setup.
+
+It also writes `greedy_invariance.csv`, the check behind Proposition 1.
+
+Outputs land in `1/outputs/results/`: `instrumented_42.csv`, `setup_cost.csv`,
+`greedy_invariance.csv`, `astar_postproc.csv`.
 
 ## Table 3 — constraint satisfaction (§5)
 

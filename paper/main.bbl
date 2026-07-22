@@ -1,0 +1,233 @@
+\begin{thebibliography}{37}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Bellman(1957)]{bellman1957dynamic}
+Richard Bellman.
+\newblock \emph{Dynamic Programming}.
+\newblock Princeton University Press, 1957.
+
+\bibitem[Boeing(2017)]{boeing2017osmnx}
+Geoff Boeing.
+\newblock {OSMnx}: New methods for acquiring, constructing, analyzing, and
+  visualizing complex street networks.
+\newblock \emph{Computers, Environment and Urban Systems}, 65:\penalty0
+  126--139, 2017.
+
+\bibitem[Brafman and Tennenholtz(2002)]{brafman2002rmax}
+Ronen~I. Brafman and Moshe Tennenholtz.
+\newblock {R-MAX}---a general polynomial time algorithm for near-optimal
+  reinforcement learning.
+\newblock \emph{Journal of Machine Learning Research}, 3:\penalty0 213--231,
+  2002.
+
+\bibitem[Burns et~al.(2012)Burns, Hatem, Leighton, and
+  Ruml]{burns2012implementing}
+Ethan Burns, Matthew Hatem, Michael~J. Leighton, and Wheeler Ruml.
+\newblock Implementing fast heuristic search code.
+\newblock In \emph{Proceedings of the Symposium on Combinatorial Search
+  (SoCS)}, pages 25--32, 2012.
+
+\bibitem[Dechter and Pearl(1985)]{dechter1985generalized}
+Rina Dechter and Judea Pearl.
+\newblock Generalized best-first search strategies and the optimality of {A*}.
+\newblock \emph{Journal of the ACM}, 32\penalty0 (3):\penalty0 505--536, 1985.
+
+\bibitem[Eshelman and Schaffer(1993)]{eshelman1993real}
+Larry~J. Eshelman and J.~David Schaffer.
+\newblock Real-coded genetic algorithms and interval-schemata.
+\newblock In \emph{Foundations of Genetic Algorithms 2}, pages 187--202. Morgan
+  Kaufmann, 1993.
+
+\bibitem[Ferrari~Dacrema et~al.(2019)Ferrari~Dacrema, Cremonesi, and
+  Jannach]{dacrema2019areweb}
+Maurizio Ferrari~Dacrema, Paolo Cremonesi, and Dietmar Jannach.
+\newblock Are we really making much progress? a worrying analysis of recent
+  neural recommendation approaches.
+\newblock In \emph{Proceedings of the ACM Conference on Recommender Systems
+  (RecSys)}, pages 101--109, 2019.
+
+\bibitem[Haralick and Elliott(1980)]{haralick1980increasing}
+Robert~M. Haralick and Gordon~L. Elliott.
+\newblock Increasing tree search efficiency for constraint satisfaction
+  problems.
+\newblock \emph{Artificial Intelligence}, 14\penalty0 (3):\penalty0 263--313,
+  1980.
+
+\bibitem[Hart et~al.(1968)Hart, Nilsson, and Raphael]{hart1968formal}
+Peter~E. Hart, Nils~J. Nilsson, and Bertram Raphael.
+\newblock A formal basis for the heuristic determination of minimum cost paths.
+\newblock \emph{IEEE Transactions on Systems Science and Cybernetics},
+  4\penalty0 (2):\penalty0 100--107, 1968.
+
+\bibitem[Henderson et~al.(2018)Henderson, Islam, Bachman, Pineau, Precup, and
+  Meger]{henderson2018deep}
+Peter Henderson, Riashat Islam, Philip Bachman, Joelle Pineau, Doina Precup,
+  and David Meger.
+\newblock Deep reinforcement learning that matters.
+\newblock In \emph{Proceedings of the AAAI Conference on Artificial
+  Intelligence}, 2018.
+
+\bibitem[Holte et~al.(2016)Holte, Felner, Sharon, and
+  Sturtevant]{holte2016bidirectional}
+Robert~C. Holte, Ariel Felner, Guni Sharon, and Nathan~R. Sturtevant.
+\newblock Bidirectional search that is guaranteed to meet in the middle.
+\newblock In \emph{Proceedings of the AAAI Conference on Artificial
+  Intelligence}, 2016.
+
+\bibitem[Hooker(1995)]{hooker1995testing}
+John~N. Hooker.
+\newblock Testing heuristics: We have it all wrong.
+\newblock \emph{Journal of Heuristics}, 1\penalty0 (1):\penalty0 33--42, 1995.
+
+\bibitem[Johnson(2002)]{johnson2002theoretician}
+David~S. Johnson.
+\newblock A theoretician's guide to the experimental analysis of algorithms.
+\newblock In \emph{Data Structures, Near Neighbor Searches, and Methodology},
+  pages 215--250. American Mathematical Society, 2002.
+
+\bibitem[Kearns and Singh(2002)]{kearns2002near}
+Michael Kearns and Satinder Singh.
+\newblock Near-optimal reinforcement learning in polynomial time.
+\newblock \emph{Machine Learning}, 49\penalty0 (2--3):\penalty0 209--232, 2002.
+
+\bibitem[Kennedy and Eberhart(1995)]{kennedy1995particle}
+James Kennedy and Russell Eberhart.
+\newblock Particle swarm optimization.
+\newblock In \emph{Proceedings of the IEEE International Conference on Neural
+  Networks}, pages 1942--1948, 1995.
+
+\bibitem[Kennedy and Mendes(2002)]{kennedy2002population}
+James Kennedy and Rui Mendes.
+\newblock Population structure and particle swarm performance.
+\newblock In \emph{Proceedings of the IEEE Congress on Evolutionary
+  Computation}, pages 1671--1676, 2002.
+
+\bibitem[Levene(1960)]{levene1960robust}
+Howard Levene.
+\newblock Robust tests for equality of variances.
+\newblock In \emph{Contributions to Probability and Statistics: Essays in Honor
+  of Harold Hotelling}, pages 278--292. Stanford University Press, 1960.
+
+\bibitem[Lipton and Steinhardt(2019)]{lipton2019troubling}
+Zachary~C. Lipton and Jacob Steinhardt.
+\newblock Research for practice: Troubling trends in machine-learning
+  scholarship.
+\newblock \emph{Communications of the ACM}, 62\penalty0 (6):\penalty0 45--53,
+  2019.
+
+\bibitem[Little(1961)]{little1961proof}
+John D.~C. Little.
+\newblock A proof for the queuing formula: {$L = \lambda W$}.
+\newblock \emph{Operations Research}, 9\penalty0 (3):\penalty0 383--387, 1961.
+
+\bibitem[Mackworth(1977)]{mackworth1977consistency}
+Alan~K. Mackworth.
+\newblock Consistency in networks of relations.
+\newblock \emph{Artificial Intelligence}, 8\penalty0 (1):\penalty0 99--118,
+  1977.
+
+\bibitem[Mania et~al.(2019)Mania, Tu, and Recht]{mania2019certainty}
+Horia Mania, Stephen Tu, and Benjamin Recht.
+\newblock Certainty equivalence is efficient for linear quadratic control.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2019.
+
+\bibitem[McGeoch(2012)]{mcgeoch2012guide}
+Catherine~C. McGeoch.
+\newblock \emph{A Guide to Experimental Algorithmics}.
+\newblock Cambridge University Press, 2012.
+
+\bibitem[Melis et~al.(2018)Melis, Dyer, and Blunsom]{melis2018state}
+G{\'a}bor Melis, Chris Dyer, and Phil Blunsom.
+\newblock On the state of the art of evaluation in neural language models.
+\newblock In \emph{International Conference on Learning Representations}, 2018.
+
+\bibitem[Minton et~al.(1992)Minton, Johnston, Philips, and
+  Laird]{minton1992minimizing}
+Steven Minton, Mark~D. Johnston, Andrew~B. Philips, and Philip Laird.
+\newblock Minimizing conflicts: A heuristic repair method for constraint
+  satisfaction and scheduling problems.
+\newblock \emph{Artificial Intelligence}, 58\penalty0 (1--3):\penalty0
+  161--205, 1992.
+
+\bibitem[Musgrave et~al.(2020)Musgrave, Belongie, and Lim]{musgrave2020metric}
+Kevin Musgrave, Serge Belongie, and Ser-Nam Lim.
+\newblock A metric learning reality check.
+\newblock In \emph{Proceedings of the European Conference on Computer Vision
+  (ECCV)}, 2020.
+
+\bibitem[Pearl(1984)]{pearl1984heuristics}
+Judea Pearl.
+\newblock \emph{Heuristics: Intelligent Search Strategies for Computer Problem
+  Solving}.
+\newblock Addison-Wesley, 1984.
+
+\bibitem[Pohl(1970)]{pohl1970heuristic}
+Ira Pohl.
+\newblock Heuristic search viewed as path finding in a graph.
+\newblock \emph{Artificial Intelligence}, 1\penalty0 (3--4):\penalty0 193--204,
+  1970.
+
+\bibitem[Puterman(1994)]{puterman1994markov}
+Martin~L. Puterman.
+\newblock \emph{Markov Decision Processes: Discrete Stochastic Dynamic
+  Programming}.
+\newblock John Wiley \& Sons, 1994.
+
+\bibitem[Sculley et~al.(2018)Sculley, Snoek, Wiltschko, and
+  Rahimi]{sculley2018winners}
+D.~Sculley, Jasper Snoek, Alex Wiltschko, and Ali Rahimi.
+\newblock Winner's curse? on pace, progress, and empirical rigor.
+\newblock In \emph{International Conference on Learning Representations,
+  Workshop Track}, 2018.
+
+\bibitem[Shi and Eberhart(1998)]{shi1998modified}
+Yuhui Shi and Russell Eberhart.
+\newblock A modified particle swarm optimizer.
+\newblock In \emph{Proceedings of the IEEE International Conference on
+  Evolutionary Computation}, pages 69--73, 1998.
+
+\bibitem[S{\"o}rensen(2015)]{sorensen2015metaheuristics}
+Kenneth S{\"o}rensen.
+\newblock Metaheuristics---the metaphor exposed.
+\newblock \emph{International Transactions in Operational Research},
+  22\penalty0 (1):\penalty0 3--18, 2015.
+
+\bibitem[Sutton(1990)]{sutton1990integrated}
+Richard~S. Sutton.
+\newblock Integrated architectures for learning, planning, and reacting based
+  on approximating dynamic programming.
+\newblock In \emph{Proceedings of the International Conference on Machine
+  Learning}, pages 216--224, 1990.
+
+\bibitem[Sutton and Barto(2018)]{sutton2018reinforcement}
+Richard~S. Sutton and Andrew~G. Barto.
+\newblock \emph{Reinforcement Learning: An Introduction}.
+\newblock MIT Press, 2nd edition, 2018.
+
+\bibitem[Watkins and Dayan(1992)]{watkins1992qlearning}
+Christopher J. C.~H. Watkins and Peter Dayan.
+\newblock Technical note: {Q}-learning.
+\newblock \emph{Machine Learning}, 8\penalty0 (3--4):\penalty0 279--292, 1992.
+
+\bibitem[Webster(1958)]{webster1958traffic}
+F.~V. Webster.
+\newblock Traffic signal settings.
+\newblock Road Research Technical Paper~39, Road Research Laboratory, London,
+  HMSO, 1958.
+
+\bibitem[Wilcoxon(1945)]{wilcoxon1945individual}
+Frank Wilcoxon.
+\newblock Individual comparisons by ranking methods.
+\newblock \emph{Biometrics Bulletin}, 1\penalty0 (6):\penalty0 80--83, 1945.
+
+\bibitem[Wolpert and Macready(1997)]{wolpert1997no}
+David~H. Wolpert and William~G. Macready.
+\newblock No free lunch theorems for optimization.
+\newblock \emph{IEEE Transactions on Evolutionary Computation}, 1\penalty0
+  (1):\penalty0 67--82, 1997.
+
+\end{thebibliography}

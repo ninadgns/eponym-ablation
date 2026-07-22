@@ -64,9 +64,11 @@ The one arm that improves both metrics simultaneously is the one that abandons s
 Min-conflicts expands a median of 1.0 node at 0.08\,ms --- as fast as chronological backtracking
 per attempt and $13.5$ nodes cheaper --- and over all 400 runs averages 119 nodes and 0.044\,s
 against 444,111 nodes and 3.15\,s: $3{,}700\times$ fewer nodes and $72\times$ less time, for
-25 solved instances against 27. It buys a $93\%$ success rate at $0.03\%$ of the search cost, by
-carrying one complete (initially infeasible) assignment forward and repairing it, rather than
-rebuilding a partial assignment prefix on every backtrack.
+25 solved instances against 27. Both solve rates are low in absolute terms --- $31\%$ and $34\%$ of
+400 runs, because most instances in this sweep are out of reach for every solver at a 5\,s budget
+--- but min-conflicts reaches $93\%$ of chronological backtracking's solve count for $0.03\%$ of its
+search cost, by carrying one complete (initially infeasible) assignment forward and repairing it
+rather than rebuilding a partial assignment prefix on every backtrack.
 
 \subsection{Under censoring, the node metric inverts}
 
@@ -92,8 +94,9 @@ Chronological backtracking & 163,065 & 179,949 & 168,470 \\
 \end{center}
 
 Forward checking's apparent $3.5\times$ node advantage in the all-runs column of
-Table~\ref{tab:csp-solved} is therefore not a pruning result at all: it is $10.2\times$ lower
-throughput measured against a shared stopwatch. Under censoring the sign of the metric's meaning
+Table~\ref{tab:csp-solved} is therefore not a pruning result at all: it is lower throughput
+measured against a shared stopwatch, by $5.4\times$ at $n = 30$, $7.8\times$ at $n = 40$ and
+$10.2\times$ at $n = 50$. Under censoring the sign of the metric's meaning
 flips --- fewer nodes indicates a \emph{slower} solver, not a better-pruned tree --- and the two
 cases are indistinguishable in the reported number. Any scaling curve of nodes against $n$ that
 crosses into a censored regime without saying so is reporting throughput and calling it efficiency.

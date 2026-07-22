@@ -1,38 +1,46 @@
 #!/usr/bin/env python
 """
-Instrumented re-run of the Assignment 1 batch, separating heuristic *setup* cost
-from *search* cost.
+Instrumented re-run of the Assignment 1 batch, on a common timing basis.
 
-The stock batch driver (``dhaka_pathfind.analysis.batch``) records only the outer
-wall clock, which folds together two very different things:
+Three problems with the stock batch driver (``dhaka_pathfind.analysis.batch``) that this
+script fixes:
 
-  * ``build_heuristic_aux`` -- two full O(|E|) passes over the graph computing the
-    global min and mean cost-per-metre, done once per informed query;
-  * the search itself.
+1. **Setup is folded into search.** ``build_heuristic_aux`` runs two full O(|E|) passes over
+   the graph before an informed search expands anything. The driver's outer clock includes it;
+   ``SearchResult.metrics.runtime_ms`` excludes it (the internal ``t0`` is taken after the aux
+   build). We record both, and time the aux build separately.
 
-``SearchResult.metrics.runtime_ms`` already excludes the former (the internal
-``t0`` is taken after the aux build), so both halves are recoverable without
-touching the library. This script records them side by side, plus a direct
-timing of ``build_heuristic_aux`` in isolation, and checks whether the three
-registry heuristics are distinguishable to greedy best-first search.
+2. **The timed regions are not the same region.** ``astar()`` computes ``_suffix_costs()`` --- an
+   O(path_len^2) re-evaluation of the multi-factor edge cost --- plus a per-path-node heuristic
+   evaluation *inside* its timed region, for the ``heuristic_mean_abs_gap`` diagnostic
+   (``algorithms.py:288-303``). ``ucs()``, ``weighted_astar()`` and ``greedy_best_first()`` do no
+   post-processing at all. We time that post-processing on the identical path and subtract it, so
+   every arm reports search-only time.
 
-Writes: outputs/results/instrumented_42.csv
-        outputs/results/setup_cost.csv
-        outputs/results/greedy_invariance.csv
+3. **Single-shot timings.** Search times vary by tens of percent run to run on a laptop. We take
+   ``REPS`` repetitions per (pair, configuration) and report the median, with the aux build
+   memoised so repetitions are not dominated by setup.
+
+Writes to outputs/results/: instrumented_42.csv (per-rep), setup_cost.csv,
+greedy_invariance.csv, astar_postproc.csv.
 """
 
 from __future__ import annotations
 
 import csv
 import random
+import statistics as st
 import time
 from pathlib import Path
 
 from dhaka_pathfind.config import OUTPUTS_DIR
 from dhaka_pathfind.cost.context import CostPreset, TravellerContext
+from dhaka_pathfind.cost.model import make_edge_weight_fn
 from dhaka_pathfind.graph.load import load_landmarks, load_or_download, nearest_node
-from dhaka_pathfind.heuristics.registry import HEURISTICS, build_heuristic_aux
+from dhaka_pathfind.heuristics.registry import HEURISTICS, build_heuristic_aux, get_heuristic
+from dhaka_pathfind.search import algorithms as algo_mod
 from dhaka_pathfind.search.algorithms import (
+    _suffix_costs,
     astar,
     bidirectional_ucs,
     dijkstra,
@@ -40,10 +48,12 @@ from dhaka_pathfind.search.algorithms import (
     ucs,
     weighted_astar,
 )
+from dhaka_pathfind.search.metrics_utils import mean_heuristic_gap_on_path
 from dhaka_pathfind.synthesis.attributes import ensure_synthetic_edges
 
 SEED = 42
 PAIRS = 10
+REPS = 5
 PRESET = CostPreset.BALANCED
 UNINFORMED = ("ucs", "dijkstra", "bidirectional_ucs")
 INFORMED = ("astar", "weighted_astar", "greedy_best_first")
@@ -71,20 +81,29 @@ def main() -> None:
     lm = load_landmarks()
     names = sorted(lm)
     ctx = TravellerContext()
+    print(f"graph: {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges")
 
-    n_nodes, n_edges = graph.number_of_nodes(), graph.number_of_edges()
-    print(f"graph: {n_nodes} nodes, {n_edges} edges")
-
-    # ---- 1. heuristic setup cost in isolation -------------------------------
+    # ---- 1. heuristic setup cost, timed on its own ---------------------------
     setup_rows = []
     for rep in range(5):
         t0 = time.perf_counter()
         aux = build_heuristic_aux(graph, ctx, PRESET)
         dt = (time.perf_counter() - t0) * 1000
-        setup_rows.append({"rep": rep, "setup_ms": dt, **{k: v for k, v in aux.items()}})
+        setup_rows.append({"rep": rep, "setup_ms": dt, **aux})
         print(f"  build_heuristic_aux rep {rep}: {dt:.1f} ms")
 
-    # ---- 2. paired batch, setup and search timed separately -----------------
+    # Memoise the aux build so repetitions measure search, not setup. Patch the name the
+    # algorithms module resolves, not the registry's, since it imported by value.
+    _cache: dict = {}
+
+    def _memo(g, c, p):
+        key = (id(g), repr(c), p)
+        if key not in _cache:
+            _cache[key] = build_heuristic_aux(g, c, p)
+        return _cache[key]
+
+    algo_mod.build_heuristic_aux = _memo
+
     rng = random.Random(SEED)
     pairs = []
     while len(pairs) < PAIRS:
@@ -94,52 +113,61 @@ def main() -> None:
         if sa != ta:
             pairs.append((a, b, sa, ta))
 
-    rows = []
+    w = make_edge_weight_fn(ctx, PRESET)
+    aux = build_heuristic_aux(graph, ctx, PRESET)
+
+    rows, pp_rows = [], []
     greedy_paths: dict[tuple[int, str], tuple] = {}
+
     for pid, (na, nb, s, t) in enumerate(pairs):
         combos = [(a, "n/a") for a in UNINFORMED]
         combos += [(a, h) for a in INFORMED for h in HEURISTICS]
         for algo, heur in combos:
-            t0 = time.perf_counter()
-            res = run_one(graph, s, t, ctx, algo, heur)
-            total_ms = (time.perf_counter() - t0) * 1000
-            search_ms = res.metrics.runtime_ms
-            rows.append(
-                {
-                    "pair_id": pid,
-                    "landmark_a": na,
-                    "landmark_b": nb,
-                    "algorithm": algo,
-                    "heuristic_name": heur,
+            for rep in range(REPS):
+                res = run_one(graph, s, t, ctx, algo, heur)
+                search_ms = res.metrics.runtime_ms
+
+                # Post-processing that only astar() performs inside its timed region.
+                postproc_ms = 0.0
+                if algo == "astar" and res.path is not None:
+                    h_fn = get_heuristic(heur)
+                    t0 = time.perf_counter()
+                    suff = _suffix_costs(graph, res.path, w)
+                    mean_heuristic_gap_on_path(
+                        [h_fn(graph, res.path[i], t, ctx, PRESET, aux)
+                         for i in range(len(res.path))],
+                        suff,
+                    )
+                    postproc_ms = (time.perf_counter() - t0) * 1000
+                    pp_rows.append({
+                        "pair_id": pid, "heuristic": heur, "rep": rep,
+                        "path_len": len(res.path), "reported_search_ms": search_ms,
+                        "postproc_ms": postproc_ms,
+                    })
+
+                rows.append({
+                    "pair_id": pid, "landmark_a": na, "landmark_b": nb, "rep": rep,
+                    "algorithm": algo, "heuristic_name": heur,
                     "path_cost": res.path_cost,
                     "nodes_expanded": res.metrics.nodes_expanded,
                     "revisits": res.metrics.revisits,
                     "path_len": len(res.path) if res.path else 0,
-                    "total_ms": total_ms,
-                    "search_ms": search_ms,
-                    "setup_ms": total_ms - search_ms,
+                    "search_ms_reported": search_ms,
+                    "postproc_ms": postproc_ms,
+                    "search_ms": search_ms - postproc_ms,
                     "found": res.path is not None,
-                }
-            )
-            if algo == "greedy_best_first":
-                greedy_paths[(pid, heur)] = tuple(res.path or ())
-        print(f"  pair {pid} ({na} -> {nb}) done")
+                })
+                if algo == "greedy_best_first" and rep == 0:
+                    greedy_paths[(pid, heur)] = tuple(res.path or ())
+        print(f"  pair {pid} ({na} -> {nb}) done", flush=True)
 
-    # ---- 3. greedy invariance across the three heuristics -------------------
-    inv_rows = []
     hs = list(HEURISTICS)
-    for pid in range(PAIRS):
-        ref = greedy_paths[(pid, hs[0])]
-        inv_rows.append(
-            {
-                "pair_id": pid,
-                "reference_heuristic": hs[0],
-                **{
-                    f"identical_to_{h}": (greedy_paths[(pid, h)] == ref) for h in hs[1:]
-                },
-                "path_len": len(ref),
-            }
-        )
+    inv_rows = [{
+        "pair_id": pid, "reference_heuristic": hs[0],
+        **{f"identical_to_{h}": greedy_paths[(pid, h)] == greedy_paths[(pid, hs[0])]
+           for h in hs[1:]},
+        "path_len": len(greedy_paths[(pid, hs[0])]),
+    } for pid in range(PAIRS)]
 
     out = Path(OUTPUTS_DIR) / "results"
     out.mkdir(parents=True, exist_ok=True)
@@ -147,6 +175,7 @@ def main() -> None:
         ("instrumented_42.csv", rows),
         ("setup_cost.csv", setup_rows),
         ("greedy_invariance.csv", inv_rows),
+        ("astar_postproc.csv", pp_rows),
     ):
         p = out / name
         with p.open("w", newline="") as fh:
@@ -154,6 +183,10 @@ def main() -> None:
             wri.writeheader()
             wri.writerows(data)
         print(f"wrote {p} ({len(data)} rows)")
+
+    pp = [r["postproc_ms"] for r in pp_rows]
+    print(f"\nA* post-processing subtracted: median {st.median(pp):.1f} ms "
+          f"over {len(pp)} measurements")
 
 
 if __name__ == "__main__":

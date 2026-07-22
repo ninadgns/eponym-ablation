@@ -12,9 +12,13 @@ zero-initialised table over-values every unvisited action. Setting $Q_0 \approx 
 alone moves regret from $12.60\%$ to $5.51\%$ --- more than any other single change, and more than
 the step-size exponent contributes.
 
-\paragraph{The theory's step-size requirement is visible.} The polynomial schedule
-$\alpha_n = (1+n)^{-p}$ converges and a constant $\alpha$ does not: constant $\alpha = 0.1$ and
-$\alpha = 0.5$ give $24.52\%$ and $21.80\%$ regret against $12.60\%$ for the baseline schedule.
+\paragraph{The step-size schedule matters, in the direction theory predicts.} At a fixed
+150,000-transition budget the polynomial schedule $\alpha_n = (1+n)^{-p}$ substantially outperforms
+a constant step: constant $\alpha = 0.1$ and $\alpha = 0.5$ give $24.52\%$ and $21.80\%$ regret
+against $12.60\%$ for the baseline schedule. Robbins--Monro conditions say a constant $\alpha$ will
+not converge asymptotically; that is \emph{not} what this table measures, since every arm here
+stops at the same finite budget. What we observe is worse regret at a fixed budget, which is
+consistent with non-convergence but does not demonstrate it.
 Within the polynomial family, larger $p$ is better here ($p = 1.0$: $8.72\%$; $p = 0.7$: $12.60\%$;
 $p = 0.5$: $17.35\%$).
 

@@ -3,9 +3,7 @@
 \usepackage[margin=1.1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{booktabs}
-\usepackage{graphicx}
 \usepackage{microtype}
-\usepackage[table]{xcolor}
 \usepackage{caption}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
@@ -13,7 +11,6 @@
 
 
 \newtheorem{proposition}{Proposition}
-\newtheorem{corollary}[proposition]{Corollary}
 
 \newcommand{\weff}{w_{\mathrm{eff}}}
 \newcommand{\dgeo}{d_{\mathrm{geo}}}
@@ -30,7 +27,7 @@ Budget-Matched Ablation of Four Classical AI Method Families}
   \small \texttt{muhaiminulislam-2021111219@cs.du.ac.bd}
 }
 
-\date{\today}
+\date{July 2026}
 
 \begin{document}
 \maketitle
@@ -51,7 +48,7 @@ routing study are positive scalar multiples of one function, so greedy best-firs
 provably invariant to the choice (confirmed: identical paths on 10/10 queries) and $\mathrm{A}^*$
 over them is a one-parameter weight sweep whose node counts and search times are perfectly rank-correlated
 with that scalar ($\rho = -1.0000$). Nodes-expanded ranks $\mathrm{A}^*$ above uniform-cost search
-by $2.15\times$; wall clock ranks it \emph{below} by $5.98\times$, because $88.6\%$ of
+by $2.15\times$; wall clock ranks it \emph{below} by $6.18\times$, because $91.6\%$ of
 $\mathrm{A}^*$'s runtime is a one-off $O(|E|)$ heuristic calibration that the metric prices at zero. The fastest exact method in the study is
 uninformed. \textbf{(ii)~Constraint satisfaction:} ordering and propagation reduce node counts
 exactly as folklore predicts ($-3$ to $-5$ nodes, $p \le 10^{-4}$) while running $12$--$14\times$
@@ -115,8 +112,8 @@ test in Sections~\ref{sec:search}--\ref{sec:rl}. The headline in each case:
   magnitude more than they save, and once instances stop being solvable within budget the node
   metric measures the opposite of what it appears to. Repair-based search moves the cost of an
   attempt by three orders of magnitude while abandoning the mechanism the family is named for.
-\item \textbf{Population.} Neither the population nor the individual is doing the optimisation. A
-  single one-bit-per-iteration broadcast channel is.
+\item \textbf{Population.} Neither the population nor the individual is doing the optimisation.
+  A single shared best-so-far, broadcast once per iteration, is.
 \item \textbf{Learning.} The model is doing the work, not the learning; and the model can be
   grossly wrong and still win.
 \end{itemize}
@@ -133,8 +130,10 @@ test in Sections~\ref{sec:search}--\ref{sec:rl}. The headline in each case:
   every case the operative component is one whose cost is amortisable across units of work, and
   every customary metric is one that does not charge for amortisation. We give a corresponding
   metric-audit rule.
-\item A released, deterministic testbed: four problems, four reference implementations, 51 tests,
-  and scripts that regenerate every table in this paper.
+\item A released, deterministic testbed: four problems, four reference implementations, and
+  scripts that regenerate every table in this paper. Problems~3 and~4 carry 23 and 28 tests
+  respectively, all passing with no skips; Problems~1 and~2 carry 7 and 18, and Problem~2's are
+  not runnable from its shipped lockfile (\S\ref{sec:threats}).
 \end{enumerate}
 
 \paragraph{What this paper is not.} It is not a claim that heuristics, propagation, populations,
@@ -148,9 +147,10 @@ Section~\ref{sec:threats} is unusually long by design.
 \paragraph{Ablation as critique.} A recurring genre establishes that a field's headline progress
 survives less well than reported once baselines are tuned and budgets matched: neural language
 models \citep{melis2018state}, deep reinforcement learning \citep{henderson2018deep}, metric
-learning \citep{musgrave2020metric}, and neural recommendation \citep{dacrema2019areweb}. The
-methodological diagnoses --- unmatched tuning budgets, weak baselines, metric choice --- are
-collected by \citet{lipton2019troubling} and \citet{sculley2018winners}. Our contribution differs
+learning \citep{musgrave2020metric}, and neural recommendation \citep{dacrema2019areweb}. \citet{lipton2019troubling} name a
+closely related failure --- not identifying the true source of an empirical gain --- among four
+troubling trends; the specific diagnoses of unmatched tuning budgets and weak baselines are made
+most directly by \citet{sculley2018winners}. Our contribution differs
 in scope rather than in kind: instead of auditing one family's recent literature, we ablate the
 defining mechanism of four families simultaneously on one testbed, which lets us ask whether the
 misattributions share a structure. They do (\S\ref{sec:synthesis}).
@@ -196,9 +196,10 @@ established in theory; \S\ref{sec:rl} contributes a controlled empirical instanc
 comparison is run on \emph{byte-identical} data against a \emph{tuned} model-free baseline, and in
 which the model is then degraded until it loses, locating the crossing point.
 
-\paragraph{Domain.} The road network is from OpenStreetMap via OSMnx \citep{boeing2017osmnx}. The
-signal-control baseline is Webster's fixed-time method \citep{webster1958traffic}; delay accounting
-uses Little's law \citep{little1961proof}.
+\paragraph{Domain.} The road network is from OpenStreetMap via OSMnx \citep{boeing2017osmnx}. Our fixed-time
+signal baseline is Webster-\emph{style} \citep{webster1958traffic}: it splits a fixed green budget
+in proportion to mean arrival rates, but does not implement Webster's cycle-length optimisation,
+which is the substance of that paper. Delay accounting uses Little's law \citep{little1961proof}.
 
 \section{Testbed and Protocol}
 \label{sec:protocol}
@@ -274,12 +275,16 @@ generated --- same seed, same transitions, same order --- so that any difference
 what each method does with the data rather than to how much it received.
 
 \paragraph{Determinism.} Every experiment takes an explicit seed; there is no wall-clock or
-unseeded randomness in any solver. Re-running any experiment reproduces its table bit-for-bit.
+unseeded randomness in any solver. Re-running any experiment reproduces its table bit-for-bit ---
+with the explicit exception of the wall-clock columns in \S\ref{sec:search} and \S\ref{sec:csp},
+which are hardware- and load-dependent. Those we report as medians over repetitions, and the
+claims that rest on them are ratios, not absolute times.
 Where an arm is stochastic we report paired results over seeds and test them.
 
 \paragraph{Statistics.} Comparisons over seeds use the Wilcoxon signed-rank test
 \citep{wilcoxon1945individual} for location and Levene's test \citep{levene1960robust} for
-dispersion, on 30 paired seeds for Problem~3 and 5 for Problem~4. We report $p$-values and make no
+dispersion --- specifically the Brown--Forsythe variant, which centres on the median rather than
+the mean --- on 30 paired seeds for Problem~3 and 5 for Problem~4. We report $p$-values and make no
 claim of ``better'' without a test. We report disconfirmations of our own expectations in the same
 register as confirmations; three of the four sections below contain at least one.
 
@@ -294,7 +299,9 @@ these are course-sized instances, not industrial benchmarks (\S\ref{sec:threats}
 cross-family reading in \S\ref{sec:synthesis} is, by contrast, entirely post hoc.
 
 \paragraph{Reporting only what runs.} Every number in this paper was regenerated from the released
-code by the scripts in \texttt{repro/}, on the hardware in Appendix~\ref{app:env}. Where a method
+code on the hardware in Appendix~\ref{app:env}: Tables~\ref{tab:weff} and~\ref{tab:csp-solved} by
+the scripts in \texttt{repro/}, and the remainder by each problem's own experiment driver
+(\texttt{3/scripts/run.py}, \texttt{4/scripts/run.py}). Where a method
 is described in project documentation but is not present and executable in the released code, it
 is excluded from this paper entirely rather than reported from a stale artifact.
 
@@ -331,9 +338,10 @@ $h$ and $k\,h$ are identical. Hence greedy best-first with any two heuristics of
 $\mathrm{A}^*$ with $f = g + k_i\,\dgeo$ is exactly weighted $\mathrm{A}^*$
 \citep{pohl1970heuristic} with $f = g + \weff \cdot h_{\text{adm}}$ at weight
 $\weff = k_i / m^{*}$; and weighted $\mathrm{A}^*$ at explicit weight $w$ over $h_i$ is the same
-algorithm at $\weff = w\,k_i/m^{*}$. The nine informed configurations therefore occupy nine points
-on a single scalar axis, with uniform-cost search at $\weff = 0$ and greedy best-first at
-$\weff = \infty$.
+algorithm at $\weff = w\,k_i/m^{*}$. The nine informed configurations therefore occupy only
+\emph{seven} distinct points on a single scalar axis --- the three greedy configurations coincide at
+$\weff = \infty$, which is Proposition~\ref{prop:greedy} --- with uniform-cost search at
+$\weff = 0$.
 \end{proposition}
 
 Proposition~\ref{prop:greedy} is confirmed exactly: across all ten queries, greedy best-first
@@ -344,35 +352,49 @@ algorithm, one heuristic.
 Table~\ref{tab:weff} orders every configuration by $\weff$. Both node count and search time are
 \emph{perfectly} rank-correlated with the scalar (Spearman $\rho = -1.0000$ for each over the six
 distinct finite-weight configurations), and suboptimality is monotone non-decreasing
-($\rho = +0.845$, with four exact ties at zero). There is no second dimension in this design: what
-was presented as a $3 \times 3$ grid of algorithms and heuristics is a one-dimensional sweep of
-$\weff$, and everything measured is a monotone function of it.
+($\rho = +0.845$, with four exact ties at zero). What was presented as a $3 \times 3$ grid of
+algorithms and heuristics is a one-dimensional sweep of $\weff$, and everything measured is a
+monotone function of it.
+
+\paragraph{The algorithm axis has a duplicate in it too.} Table~\ref{tab:weff} lists eleven rows,
+not twelve, because \texttt{dijkstra()} in this codebase is \texttt{return ucs(...)} with the result
+label overwritten (\texttt{algorithms.py:118--131}; its docstring says ``same implementation as UCS
+here \dots\ included as a separate entrypoint for coursework naming''). An earlier draft of this
+paper reported the two as separate configurations with different timings --- 295.3\,ms against
+303.4\,ms --- which was pure timing noise on identical code presented as a comparison. We merge
+them. The study describes ``six search algorithms''; it has five distinct ones behind six
+entry points. This is the same failure as the heuristic collapse, on the other axis of the grid,
+and our own audit rule (\S\ref{sec:synthesis}) did not initially catch it because we applied the
+rule only to the heuristics.
 
 \begin{table}[t]
 \centering
 \small
-\caption{All twelve configurations ordered by effective weight $\weff$ (Prop.~\ref{prop:weight}).
-Means over ten landmark pairs. \emph{Search} excludes heuristic setup; \emph{total} includes it.
-Gap is cost above optimal. Node count and search time are perfectly rank-correlated with $\weff$.}
+\caption{All configurations ordered by effective weight $\weff$ (Prop.~\ref{prop:weight}).
+Per (pair, configuration) we take the median of 5 repetitions, then the mean over ten landmark
+pairs. \emph{Search} excludes heuristic setup and excludes the diagnostic post-processing discussed
+in \S\ref{sec:search-basis}; \emph{setup} is the median of five isolated timings of
+\texttt{build\_heuristic\_aux}. \emph{Spread} is the median run-to-run range as a fraction of the
+median. Gap is cost above optimal.}
 \label{tab:weff}
 \setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{@{}lrrrrrr@{}}
+\begin{tabular}{@{}lrrrrrrr@{}}
 \toprule
-\textbf{Configuration} & $\weff$ & \textbf{Nodes} & \textbf{Search (ms)} & \textbf{Setup (ms)} &
-\textbf{Total (ms)} & \textbf{Gap (\%)} \\
+\textbf{Configuration} & $\weff$ & \textbf{Nodes} & \textbf{Search} & \textbf{Setup} &
+\textbf{Total} & \textbf{Gap} & \textbf{Spread} \\
+ & & & (ms) & (ms) & (ms) & (\%) & \\
 \midrule
-Uniform-cost search        & 0     & 14,735 & 295.3 & 0.8    & 296.0  & 0.000 \\
-Dijkstra                   & 0     & 14,735 & 303.4 & 0.6    & 304.0  & 0.000 \\
-Bidirectional UCS          & 0     & 7,316  & 144.1 & 0.4    & \textbf{144.6}  & 0.000 \\
-$\mathrm{A}^*$ + admissible          & 1.000 & 6,845  & 202.6 & 1567.7 & 1770.3 & 0.000 \\
-$\mathrm{A}^*$ + fast                & 1.250 & 5,518  & 152.8 & 1552.2 & 1705.0 & 0.000 \\
-Weighted $\mathrm{A}^*$ + admissible & 1.350 & 5,057  & 117.4 & 1574.4 & 1691.7 & 0.000 \\
-Weighted $\mathrm{A}^*$ + fast       & 1.688 & 3,540  & \textbf{81.4}  & 1544.3 & 1625.7 & 0.000 \\
-$\mathrm{A}^*$ + realism             & 2.479 & 1,238  & 58.5  & 1555.3 & 1613.8 & 0.080 \\
-Weighted $\mathrm{A}^*$ + realism    & 3.347 & 492   & 16.7  & 1563.1 & 1579.7 & 3.222 \\
-Greedy best-first + admissible & $\infty$ & 120 & 3.0 & 1567.3 & 1570.3 & 30.754 \\
-Greedy best-first + realism    & $\infty$ & 120 & 2.9 & 1516.3 & 1519.2 & 30.754 \\
-Greedy best-first + fast       & $\infty$ & 120 & 3.2 & 1520.9 & 1524.1 & 30.754 \\
+Uniform-cost search \small(= Dijkstra) & 0 & 14,735 & 282.7 & 0.0 & 282.7 & 0.000 & 13\% \\
+Bidirectional UCS          & 0     & 7,316  & 155.4 & 0.0    & \textbf{155.4}  & 0.000 & 15\% \\
+$\mathrm{A}^*$ + admissible          & 1.000 & 6,845  & 146.1 & 1599.4 & 1745.6 & 0.000 & 11\% \\
+$\mathrm{A}^*$ + fast                & 1.250 & 5,518  & 115.7 & 1599.4 & 1715.1 & 0.000 & \phantom{0}6\% \\
+Weighted $\mathrm{A}^*$ + admissible & 1.350 & 5,057  & 105.5 & 1599.4 & 1704.9 & 0.000 & \phantom{0}7\% \\
+Weighted $\mathrm{A}^*$ + fast       & 1.688 & 3,540  & \phantom{0}72.4  & 1599.4 & 1671.8 & 0.000 & \phantom{0}7\% \\
+$\mathrm{A}^*$ + realism             & 2.479 & 1,238  & \phantom{0}25.4  & 1599.4 & 1624.9 & 0.080 & 20\% \\
+Weighted $\mathrm{A}^*$ + realism    & 3.347 & 492   & \phantom{0}10.1  & 1599.4 & 1609.5 & 3.222 & 19\% \\
+Greedy best-first + admissible & $\infty$ & 120 & \phantom{00}2.5 & 1599.4 & 1601.9 & 30.754 & 21\% \\
+Greedy best-first + realism    & $\infty$ & 120 & \phantom{00}2.4 & 1599.4 & 1601.8 & 30.754 & \phantom{0}8\% \\
+Greedy best-first + fast       & $\infty$ & 120 & \phantom{00}2.5 & 1599.4 & 1601.9 & 30.754 & \phantom{0}7\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -380,63 +402,100 @@ Greedy best-first + fast       & $\infty$ & 120 & 3.2 & 1520.9 & 1524.1 & 30.754
 This is not a defect peculiar to this testbed; it is the default outcome of the standard
 instruction to supply ``one admissible and two inadmissible heuristics'' for a geometric domain,
 where the only readily available admissible quantity is a scaled straight-line distance and the
-natural way to make it inadmissible is to scale it further. The lesson is that a heuristic
-portfolio must be checked for functional independence before it is crossed with anything, and that
-the check is cheap: compute the induced orderings.
+natural way to make it inadmissible is to scale it further. The lesson is that a portfolio --- of
+heuristics \emph{or} of algorithms --- must be checked for functional independence before it is
+crossed with anything, and that the check is cheap: compute the induced orderings, and diff the
+implementations.
+
+\subsection{Putting the arms on a common timing basis}
+\label{sec:search-basis}
+
+Two measurement problems have to be fixed before any timing comparison here means anything, and
+one of them we got wrong in an earlier draft.
+
+\paragraph{Setup is not search.} Both heuristic constants $m^{*}$ and $\bar{m}$ are global
+reductions over the edge set, computed by two full $O(|E|)$ passes that evaluate the multi-factor
+cost function on all 137,529 edges. The library's own clock excludes this (the internal timer
+starts after the aux build) while the batch driver's outer clock includes it. We report the two
+separately: setup costs 1494--1819\,ms across five isolated timings (median 1599\,ms), against
+essentially zero for the uninformed methods.
+
+\paragraph{The timed regions were not the same region.} \texttt{astar()} computes
+\texttt{\_suffix\_costs()} --- an $O(\text{path length}^2)$ re-evaluation of the multi-factor edge
+cost --- plus a per-path-node heuristic evaluation \emph{inside} its timed region, to produce the
+\texttt{heuristic\_mean\_abs\_gap} diagnostic (\texttt{algorithms.py:288--303}).
+\texttt{ucs()}, \texttt{weighted\_astar()} and \texttt{greedy\_best\_first()} do no post-processing
+at all. Comparing their reported times therefore compares different regions, and the asymmetry
+falls entirely on the arm we were measuring. It is worth a median of 26.0\,ms on these paths
+(range 7.0--55.2\,ms), which on the $\mathrm{A}^*$ arm is not a rounding error. We time that
+post-processing on the identical path and subtract it, so Table~\ref{tab:weff} reports search-only
+time for every arm.
+
+An earlier draft did not do this, and consequently reported $\mathrm{A}^*$'s per-node cost as
+29.60\,$\mu$s against uniform-cost search's 20.04\,$\mu$s --- a $1.48\times$ per-node penalty
+attributed to heuristic evaluation. On the corrected basis the figures are 21.35\,$\mu$s and
+19.18\,$\mu$s. The tell was visible in our own table and we missed it: weighted
+$\mathrm{A}^*$+admissible, which is the same algorithm at $w = 1.35$ and does no post-processing,
+came out at 23.2\,$\mu$s per node, cheaper than plain $\mathrm{A}^*$. A heuristic cannot cost less
+to evaluate when you weight it more.
+
+\paragraph{Repetitions.} Search times on this machine vary run to run by 6--21\% of the median
+(Table~\ref{tab:weff}, last column) --- enough that an earlier single-shot measurement of
+$\mathrm{A}^*$+admissible's search time (202.6\,ms) and the median of five repetitions here
+(146.1\,ms) differ by more than a third. All timings below are medians over five repetitions, and
+we quote ratios rather than absolute times wherever a claim rests on them.
 
 \subsection{The metric reversal}
 
 Node expansions are the customary metric of heuristic search, and by that metric
 $\mathrm{A}^*$ with the admissible heuristic dominates uniform-cost search: 6,845 versus
 14,735 expansions, a $2.15\times$ reduction. By total wall clock the ranking reverses:
-1770.3\,ms versus 296.0\,ms, a $5.98\times$ \emph{loss}.
+1745.6\,ms versus 282.7\,ms, a $6.18\times$ \emph{loss}. Setup is $91.6\%$ of
+$\mathrm{A}^*$'s total runtime, and the node-count metric charges none of it.
 
-The reversal has a single cause, which we measure rather than infer. Both heuristic constants
-$m^{*}$ and $\bar{m}$ are global reductions over the edge set, computed by two full $O(|E|)$ passes
-that evaluate the multi-factor cost function on all 137,529 edges. Timed in isolation over
-five repetitions this costs 1,554--2,021\,ms (median 1,725\,ms);
-measured inside the batch it accounts for 1,516--1,574\,ms of every informed
-query, against 0.4--0.8\,ms for the uninformed methods. It accounts for
-$88.6\%$ of $\mathrm{A}^*$'s total runtime, against $0.3\%$ for uniform-cost search, and the node-count
-metric charges exactly none of it.
+Charging it correctly changes three conclusions --- though, on the corrected basis, one of them by
+much less than we first claimed.
 
-Charging it correctly changes three conclusions.
+\paragraph{(i) Excluding setup, node counts overstate the heuristic's time benefit --- but only by
+$1.11\times$.} $\mathrm{A}^*$ expands $2.15\times$ fewer nodes and spends $1.93\times$ less time
+searching (146.1\,ms versus 282.7\,ms), because an $\mathrm{A}^*$ expansion costs
+21.35\,$\mu$s against uniform-cost's 19.18\,$\mu$s. The principle stands --- a node is a unit of
+cost only if the per-node cost is equal across arms, and introducing a heuristic violates that ---
+but on this graph the violation is small: evaluating $k \cdot \dgeo$ is a multiplication and a
+great-circle distance, which is cheap next to the multi-factor edge-cost evaluation that both arms
+pay on every generated edge. We previously reported this discrepancy as $1.48\times$; that figure
+was an artifact of our own instrumentation (\S\ref{sec:search-basis}), and the honest number is
+much less impressive. The interesting mispricing in this family is the setup, not the per-node
+cost.
 
-\paragraph{(i) Even excluding setup, node counts overstate the heuristic's benefit by $1.48\times$.}
-$\mathrm{A}^*$ expands $2.15\times$ fewer nodes but spends only $1.46\times$ less time searching
-(202.6\,ms versus 295.3\,ms), because each $\mathrm{A}^*$ expansion
-costs 29.60\,$\mu$s against uniform-cost's 20.04\,$\mu$s --- the heuristic
-is evaluated on every generated node. A node is not a unit of cost; it is a unit of cost only if
-the per-node cost is equal across arms, which is exactly what introducing a heuristic violates.
-
-\paragraph{(ii) The advantage is real but amortisable, and the break-even is quantifiable.}
-The setup constant depends only on the graph, the traveller context, and the cost preset --- not on
-the query. Hoisting it out of the query loop, $\mathrm{A}^*$+admissible saves
-92.7\,ms of search per query against uniform-cost search, so the
-1567.7\,ms setup pays for itself after $16.9$ queries sharing a context. Against the
-stronger uninformed baseline the arithmetic is harsher: bidirectional uniform-cost search searches
-in 144.1\,ms, faster than $\mathrm{A}^*$+admissible's 202.6\,ms, so
-$\mathrm{A}^*$ with the admissible heuristic \emph{never} breaks even against it at any query
-volume. The first informed configuration that does is weighted $\mathrm{A}^*$+fast, at
-81.4\,ms of search, which saves 62.7\,ms per query and breaks even
-after $24.6$ queries.
+\paragraph{(ii) The advantage is real and amortisable, and the break-even depends entirely on the
+baseline.} The setup constant depends only on the graph, the traveller context, and the cost preset
+--- not on the query --- so hoisting it out of the query loop is legitimate for any workload that
+issues repeated queries in one context. Against uniform-cost search, $\mathrm{A}^*$+admissible saves
+136.6\,ms of search per query, so the 1599\,ms setup pays for itself after $11.7$ queries; weighted
+$\mathrm{A}^*$+fast breaks even after $7.6$. Against bidirectional uniform-cost search the picture
+is very different: it searches in 155.4\,ms, barely slower than $\mathrm{A}^*$+admissible's
+146.1\,ms, so that pairing needs $172$ queries to amortise, while weighted $\mathrm{A}^*$+fast needs
+$19.3$. A previous draft claimed $\mathrm{A}^*$+admissible \emph{never} breaks even against
+bidirectional search; on the corrected timings that is wrong --- it does, just two orders of
+magnitude later than against the weaker baseline.
 
 \paragraph{(iii) The fastest exact method in the study is uninformed.} Bidirectional uniform-cost
-search returns provably optimal paths on 10/10 queries in 144.6\,ms total ---
-$11.2\times$ faster than the fastest exact informed configuration and $12.2\times$ faster than
-$\mathrm{A}^*$ with the admissible heuristic. It achieves a $2.01\times$ node reduction over
-unidirectional uniform-cost search with no precomputation at all: a structural saving rather than
-an informational one, and one that the query-volume argument in (ii) does not erode.
+search returns provably optimal paths on 10/10 queries in 155.4\,ms total --- $10.8\times$ faster
+than the fastest exact informed configuration and $11.2\times$ faster than $\mathrm{A}^*$ with the
+admissible heuristic. It achieves a $2.01\times$ node reduction over unidirectional uniform-cost
+search with no precomputation at all: a structural saving rather than an informational one, and the
+only one in this table that costs nothing to obtain.
 
 \subsection{Verdict}
 
-The heuristic in this study is one scalar, and its benefit is real but is (a) overstated
-$1.48\times$ by node counting even before setup, (b) overwhelmed for single queries by an
-$O(|E|)$ precomputation that node counting prices at zero, and (c) in its admissible form, beaten
-at \emph{any} query volume by an uninformed algorithm exploiting problem structure. Only an
-inadmissible configuration --- weighted $\mathrm{A}^*$ at $\weff = 1.688$ --- eventually overtakes
-bidirectional search, and then only past 25 queries per context. The mechanism that most improves
-single-query exact routing here is bidirectional expansion, not information.
+The heuristic in this study is one scalar. Its benefit is real, and on a per-node basis it is
+close to free ($1.11\times$). What it is not is free \emph{per context}: $91.6\%$ of an informed
+query's runtime is an $O(|E|)$ calibration that the customary metric prices at zero, which
+reverses the ranking against uniform-cost search by $6.18\times$ for a single query and takes
+$11.7$ queries to repay. And for single-query exact routing the mechanism that actually wins is
+bidirectional expansion --- structure, not information --- which no amount of query volume is
+needed to justify.
 
 \section{Constraint Satisfaction: The Orderings Do Not Change What Gets Solved}
 \label{sec:csp}
@@ -485,8 +544,10 @@ signed-rank against random search.}
 \end{table}
 
 The answer is unusually clean. Thirty independent searchers are worth \emph{nothing} over a single
-random sampler at the same budget: arm~(b) versus arm~(d) gives $p = 0.22$, and the point estimate
-favours random search. A single particle spending the entire budget alone is actively
+random sampler at the same budget: arm~(b) versus arm~(d) gives $p = 0.22$. The point estimates do
+nominally favour the non-communicating swarm (median $23.79$ against $24.56$; paired median
+difference $-0.57$ minutes), but the effect is not distinguishable from zero at 30 seeds, and it is
+an order of magnitude smaller than what communication buys. A single particle spending the entire budget alone is actively
 \emph{worse} than random sampling ($p = 7.1\times 10^{-5}$): with no social attractor, inertia
 walks it into a corner of the box and it stops sampling usefully. Only when the thirty searchers
 share a single best-so-far does the method work at all. Arms~(b) and~(c) differ in one coefficient
@@ -554,12 +615,17 @@ Uniform headway         & 32.14 & 32.40 & 0.26  & 13.5\% & 9.6\% \\
 $K \in \{10,\dots,18\} \times B \in \{2,3,4\}$ sweep, the quadratic fleet-overload penalty at the
 found optimum is \emph{exactly zero} and peak concurrency never exceeds $B$; at $B = 2$ it
 saturates at exactly $2$. The optimiser routes around the constraint rather than paying for it, so
-the constraint is invisible in the objective and appears only as a shadow price: cutting the fleet
-from three buses to two costs $1.61$ and $1.48$ minutes of mean wait at $K = 10$ and $K = 11$, and
-$0.26$ at $K = 12$, while a fourth bus buys nothing at all (differences of $-0.36$ to $-0.66$
-minutes, i.e.\ nominally worse, well inside the seed noise of $\mathrm{sd} \approx 1.0$). A third
-bus is worth buying; a fourth is not. Reporting penalty terms alone would have reported a
-constraint that does not exist.
+the constraint is invisible in the objective and appears only as a shadow price. At the small end of
+the sweep the price is legible: cutting from three buses to two costs $1.61$, $1.48$ and $0.26$
+minutes of mean wait at $K = 10, 11, 12$, while a fourth bus is nominally \emph{worse} there
+($-0.36$ to $-0.66$ minutes). At $K \geq 13$ the pattern does not hold --- the fourth bus buys
+$1.37$ minutes at $K = 13$ and $0.65$ at $K = 14$ while the third buys nothing --- and with seed
+standard deviations of $0.3$ to $2.0$ minutes, almost every one of these differences sits inside
+the noise. The defensible statement is the narrow one: below $K = 12$ a third bus is worth roughly
+a minute and a half of mean wait and a fourth is worth nothing, and above that our 5-seed cells
+cannot separate the fleet sizes at all. Reporting penalty terms alone would have reported a
+constraint that does not exist; reporting these differences without their standard deviations would
+have reported a procurement recommendation the data does not support.
 
 \section{Reinforcement Learning: The Model Is the Mechanism}
 \label{sec:rl}
@@ -570,8 +636,9 @@ Value iteration converges in 2,528 sweeps to $\epsilon = 10^{-8}$ with an empiri
 rate of $0.98981$ against the theoretical $\gamma = 0.99$ (absolute error $1.93\times10^{-4}$), and
 $V^{*}$ agrees with the exact sparse linear solve $(I - \gamma P_\pi)V^{\pi} = R_\pi$ of its own
 greedy policy to $4.90\times10^{-9}$. Every policy in this section is scored the same way --- by
-exact solution of that linear system under the \emph{true} model --- so rankings carry no
-Monte-Carlo noise. Regret is $100\,(V^{*} - V^{\pi})/|V^{*}|$.
+exact solution of that linear system under the \emph{true} model --- so the regret and
+action-optimality rankings carry no Monte-Carlo noise. The rollout statistics reported alongside
+them (switches per hour, mean delay) come from simulation and do. Regret is $100\,(V^{*} - V^{\pi})/|V^{*}|$.
 
 The instance has a property worth stating because it makes the lookahead claim provable rather than
 merely measured. Delay is charged on the queue \emph{entering} the tick, so it is identical under
@@ -594,8 +661,11 @@ switching curve is emphatically not the diagonal.
 \begin{table}[t]
 \centering
 \small
-\caption{Exact regret under the true model. Myopic greedy and always-hold coincide by
-construction (see text).}
+\caption{Regret and action-optimality are exact --- solved from
+$(I - \gamma P_\pi)V^\pi = R_\pi$ under the true model, so they carry no Monte-Carlo noise.
+Switches/h and mean delay are rollout statistics from a single 50,000-tick simulation and do carry
+sampling noise; they are reported because they are the units a traffic engineer recognises, not
+because they rank policies. Myopic greedy and always-hold coincide by construction (see text).}
 \label{tab:rl-baselines}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
@@ -654,6 +724,17 @@ real, and corroborated by the action-optimality column, where the gap is not mod
 identical data, planning on the estimated model converts the same transitions into substantially
 better decisions than learning the values directly.
 
+\paragraph{The test, and the seed that goes the other way.} Our protocol (\S\ref{sec:protocol})
+forbids a claim of ``better'' without a test, so: over the 5 paired seeds the difference is
+$0.98$ percentage points with $t(4) = 3.87$, $p = 0.018$, $d_z = 1.73$. A two-sided Wilcoxon
+signed-rank test gives $p = 0.125$; at $n = 5$ that test cannot go below $p = 0.0625$ whatever the
+data, so it is not the informative choice here and we report it only for completeness. More
+important than either: \textbf{certainty equivalence wins on 4 of 5 seeds, not 5}. On seed~3 the
+tuned learner edges it, $2.3876\%$ against $2.3893\%$ --- a margin of $0.0017$ percentage points,
+which is a tie in everything but sign. We report it because a paper whose second contribution is
+the disconfirming step should not quietly round $4/5$ up to a clean result. The action-optimality
+gap ($89.9\%$ vs $65.7\%$) is the more robust of the two comparisons and holds on every seed.
+
 \paragraph{Why.} The asymmetry is in what a sample buys. A transition spent on a $Q$-learning
 backup updates one state--action pair once, and value propagates backwards only along trajectories
 actually walked. The same transition spent on $\hat{P}$ and $\hat{R}$ becomes a permanent part of a
@@ -698,12 +779,13 @@ and reused many times}, while the eponym's cost is paid per unit of work.
 \begin{itemize}[leftmargin=1.4em, itemsep=3pt]
 \item \textbf{Search.} The heuristic's information is a global constant obtained by one $O(|E|)$
   reduction. Its cost is per-context; its benefit is per-query. At one query it loses by
-  $5.98\times$; past 17 queries it wins. Node counting reports the $n \to \infty$ limit
-  unconditionally and never names the assumption.
+  $6.18\times$; past 12 queries against uniform-cost search, or 172 against bidirectional search,
+  it wins. Node counting reports the $n \to \infty$ limit unconditionally, and never names either
+  the assumption or the baseline it is relative to.
 \item \textbf{Constraints.} Systematic search reconstructs a partial assignment prefix on every
   backtrack; repair carries one complete assignment forward and reuses it across every step. The
-  reused object is the assignment itself, which is why min-conflicts pays 0.08\,ms per attempt
-  where forward checking pays 1.27\,ms for five fewer nodes.
+  reused object is the assignment itself, which is why min-conflicts settles in a median of one
+  node at 0.08\,ms where forward checking spends nine at 1.27\,ms.
 \item \textbf{Population.} \texttt{gbest} is a broadcast channel: one evaluation, once found,
   informs all thirty particles for the remainder of the run. Sever it and thirty particles decay to
   thirty independent samplers, which is what the $p = 0.22$ against random search measures. The
@@ -737,8 +819,8 @@ consequence in this paper.}
 \textbf{Family} & \textbf{Customary metric} & \textbf{What it does not charge} & \textbf{Measured consequence} \\
 \midrule
 Informed search & nodes expanded & heuristic construction; per-node heuristic evaluation &
-  ranking of $\mathrm{A}^*$ vs.\ UCS reverses ($2.15\times$ win $\to$ $5.98\times$ loss);
-  benefit overstated $1.48\times$ even excluding setup \\
+  ranking of $\mathrm{A}^*$ vs.\ UCS reverses ($2.15\times$ win $\to$ $6.18\times$ loss);
+  setup is $91.6\%$ of runtime \\
 \addlinespace
 Constraint satisfaction & nodes, backtracks & per-node ordering and propagation cost; budget
   censoring &
@@ -773,9 +855,12 @@ The four cases suggest a checklist that costs little and would have caught all o
 \item \textbf{Tune the arm you expect to lose.} \S\ref{sec:rl} would have reported a sevenfold
   effect instead of a $1.6\times$ one had we skipped this. Any ablation that only tunes the
   favoured arm measures tuning effort, not mechanism.
-\item \textbf{Check the portfolio for independence.} Before crossing $k$ heuristics with $m$
-  algorithms, verify the $k$ heuristics induce distinct orderings (\S\ref{sec:search}). Ours did
-  not, and the $3\times3$ grid was a one-dimensional sweep.
+\item \textbf{Check \emph{both} axes of the grid for independence.} Before crossing $k$
+  heuristics with $m$ algorithms, verify that the $k$ heuristics induce distinct orderings and that
+  the $m$ algorithms are distinct code. Ours failed on both counts: the three heuristics were one
+  heuristic under a scalar, and two of the six ``algorithms'' were the same function
+  (\S\ref{sec:search}). We applied this rule to the heuristic axis and not the algorithm axis, and
+  it cost us a spurious row in our own table.
 \end{enumerate}
 
 \section{Threats to Validity}
@@ -794,6 +879,17 @@ entirely. What is \emph{not} implementation-dependent is the structural point: t
 $O(|E|)$ and the search is $O(\text{nodes expanded})$, these scale differently, and node counting
 prices the first at zero. The magnitude is ours; the asymmetry is not.
 
+\paragraph{And one of those constants was ours to begin with.} The more instructive failure is the
+one described in \S\ref{sec:search-basis}: \texttt{astar()} performed $O(\text{path length}^2)$
+diagnostic post-processing inside its timed region and no other arm did, so an earlier draft of
+this paper compared different regions and inflated three of its own headline numbers. This is not
+covered by the implementation-constants caveat above, because it is not a constant factor --- it is
+an instrumentation asymmetry that falls on exactly one arm. We caught it only when the per-node
+costs in our own table became internally inconsistent (weighted $\mathrm{A}^*$ appearing cheaper
+per node than unweighted $\mathrm{A}^*$ over the same heuristic). A paper arguing that fields
+mis-measure their own mechanisms should say plainly that it did so twice: here, and on the
+duplicate \texttt{dijkstra()} entry point.
+
 \paragraph{Instances are synthetic.} Every instance is generated, not measured. Parameters are
 motivated (class-change cadence, saturation flow of 1,800\,veh/h, 60-minute reneging) but not
 calibrated against field data, because the relevant field data for Dhaka is not published --- which
@@ -808,11 +904,14 @@ would appear in all four. All timings are from a single laptop-class machine
 ratios, not absolutes.
 
 \paragraph{Statistical power.} \S\ref{sec:search} uses 10 query pairs and reports means without
-tests --- the effects there are large ($5.98\times$) and the invariance result is exact, but the
-timing means carry no error bars. \S\ref{sec:pso} uses 30 paired seeds, adequate for the reported
+tests. The headline effect is large ($6.18\times$) and the invariance result is exact, but the
+timing means are medians over five repetitions with a run-to-run spread of 6--21\%, and we report
+no confidence intervals on them. \S\ref{sec:pso} uses 30 paired seeds, adequate for the reported
 effects but explicitly \emph{inadequate} for the ring-variance question, which we therefore decline
-to claim. \S\ref{sec:rl} uses 5 seeds; the $1.74\%$ vs $2.72\%$ gap is roughly $2.4$ pooled standard
-deviations and we do not claim more precision than that.
+to claim. \S\ref{sec:rl} uses 5 seeds. The $1.74\%$ vs $2.72\%$ gap is $2.96$ pooled standard deviations, or
+$d_z = 1.73$ paired --- the paired figure being the appropriate one, since the seeds are matched.
+An earlier draft reported ``2.4 pooled standard deviations''; that number was the gap divided by
+the certainty-equivalence arm's standard deviation alone, and was wrong.
 
 \paragraph{Scope of the collapse result.} Proposition~\ref{prop:weight} applies to heuristics of the
 form $k \cdot \dgeo$. It is not a claim that heuristic portfolios generally collapse; landmark-based,
@@ -848,6 +947,15 @@ coverage. Under function approximation, in large or continuous state spaces, or 
 coverage, the comparison could invert. We claim the result for this regime and note that the regime
 is the one most classical MDP pedagogy actually occupies.
 
+\paragraph{Test coverage is uneven across the four problems.} Problems~3 and~4 carry 23 and 28
+tests and are the two whose algorithmic claims we lean on hardest; both suites pass with no skips,
+and both encode the load-bearing invariants directly (the budget-exactness assertion in
+\S\ref{sec:pso}, and a test that greps the $Q$-learner's own source to confirm it never reads the
+true model in \S\ref{sec:rl}). Problems~1 and~2 are weaker: 7 and 18 tests respectively, and
+Problem~2's suite is not runnable from its shipped lockfile at all, which does not list
+\texttt{pytest}. We verified Problem~2's solvers by re-running them and inspecting outputs rather
+than through its tests, and readers should weight \S\ref{sec:csp} accordingly.
+
 \paragraph{The synthesis is an interpretation.} \S\ref{sec:synthesis}'s reuse-asymmetry account is
 a post-hoc reading of four results, not a tested hypothesis. It generates predictions --- e.g.\ that
 a PSO variant broadcasting more information per iteration should outperform \texttt{gbest} by more
@@ -880,7 +988,9 @@ to make it cheap.
 
 \paragraph{Reproducibility.} All code, data-generation scripts, and the scripts that regenerate
 every table in this paper are released at
-\url{https://github.com/ninadgns/eponym-ablation}. Every experiment is seeded and reproduces bit-for-bit.
+\url{https://github.com/ninadgns/eponym-ablation}. Every experiment is seeded; every table
+reproduces exactly, except the wall-clock columns, whose ratios reproduce but whose absolute
+milliseconds are hardware-dependent.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
