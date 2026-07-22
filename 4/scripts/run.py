@@ -57,7 +57,7 @@ QL_SEEDS = tuple(range(5))
 # state-action coverage here.
 QL_EPISODES = 4000
 QL_EPISODE_LEN = 100
-SWEEP_EPISODES = 1500  # the hyperparameter sweep is 13 configs x 3 seeds; keep it affordable
+SWEEP_EPISODES = 1500  # the hyperparameter sweep is 15 configs x 3 seeds; keep it affordable
 SWEEP_SEEDS = (0, 1, 2)
 
 # The best configuration the B.10.5 sweep found. B.10.4 asks whether a wrong model beats learning
