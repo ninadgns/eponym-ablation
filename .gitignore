@@ -46,3 +46,6 @@ paper/*.log
 paper/*.out
 paper/*.pdf
 paper/*.toc
+
+# The arXiv upload bundle, which paper/submission/README.md tells you to build here.
+submission.tar.gz
