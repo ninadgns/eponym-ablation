@@ -10,6 +10,10 @@ reference in a file LaTeX never reads. This script checks that:
   2. every table label defined in paper/main.tex is cited by repro/README.md;
   3. repro/README.md contains no bare "Table N" references, which would drift.
 
+The paper source lives on the `paper` branch, not on main. Off that branch there is
+nothing to check against, so this exits 0 with a note rather than failing — a check
+that cannot run is not a check that failed, and this is meant for CI.
+
 Run from the repo root:  python repro/check_labels.py
 Exits non-zero on any failure, so it can go in CI or a pre-commit hook.
 """
@@ -23,6 +27,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "repro" / "README.md"
 TEX = sorted((ROOT / "paper").glob("*.tex"))
+
+if not TEX:
+    print("SKIP — no paper/*.tex on this branch; the paper source lives on `paper`.")
+    print("       To run the check:  git switch paper && python repro/check_labels.py")
+    sys.exit(0)
 
 tex_src = "\n".join(p.read_text() for p in TEX)
 readme = README.read_text()
