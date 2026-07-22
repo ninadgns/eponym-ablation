@@ -37,40 +37,36 @@ Budget-Matched Ablation of Four Classical AI Method Families}
 \begin{abstract}
 Classical AI method families are named for a mechanism --- the \emph{heuristic} in heuristic
 search, the \emph{constraints} in constraint propagation, the \emph{swarm} in particle swarm
-optimisation, the \emph{learning} in reinforcement learning --- and both textbooks and practice
-credit that mechanism with the family's performance. We ask, for four families at once, whether
-the eponymous mechanism is the mechanism that does the work. We build four problems in a single
-application setting (urban mobility in Dhaka, Bangladesh), implement each family from scratch, and
-run ablations under strictly matched compute budgets, scoring each family on both its own
-customary metric and on a metric that charges every resource consumed.
+optimisation, the \emph{learning} in reinforcement learning --- and textbooks credit that
+mechanism with the family's performance. We ask, for four families at once, whether the eponym is
+what does the work. We build four problems in one setting (urban mobility in Dhaka, Bangladesh),
+implement each family from scratch, and ablate them under strictly matched compute budgets,
+scoring each on its own customary metric and on one that charges every resource consumed.
 
-In no family does the standard attribution survive the ablation intact, and in three of them the
-customary metric is what conceals the failure. \textbf{(i)~Informed search:} the three ``different'' heuristics in a standard
-routing study are positive scalar multiples of one function, so greedy best-first search is
-provably invariant to the choice (confirmed: identical paths on 10/10 queries) and $\mathrm{A}^*$
-over them is a one-parameter weight sweep whose node counts and search times are perfectly rank-correlated
-with that scalar ($\rho = -1.0000$). Nodes-expanded ranks $\mathrm{A}^*$ above uniform-cost search
-by $2.15\times$; wall clock ranks it \emph{below} by $6.18\times$, because $91.6\%$ of
-$\mathrm{A}^*$'s runtime is a one-off $O(|E|)$ heuristic calibration that the metric prices at zero. The fastest exact method in the study is
-uninformed. \textbf{(ii)~Constraint satisfaction:} ordering and propagation reduce node counts
-exactly as folklore predicts ($-3$ to $-5$ nodes, $p \le 10^{-4}$) while running $12$--$14\times$
-slower in wall clock and changing which instances are solvable in 1 case out of 80 --- that one
-adversely; past the point where search stops completing, the node metric inverts and measures
-throughput rather than pruning. \textbf{(iii)~Population-based search:} thirty non-communicating
-particles are statistically indistinguishable from random search ($p = 0.22$) and a single particle
-is \emph{worse} than random search ($p < 10^{-4}$); switching on the social term alone, at the same
-budget and the same random stream, buys $7.6$ minutes of every student's expected waiting time. The
-population is not the mechanism, the communication channel is.
-\textbf{(iv)~Reinforcement learning:} on identical data --- same seeds, same 400{,}000 transitions,
-same order --- planning on an estimated model beats a \emph{tuned} model-free learner ($1.74\%$
-versus $2.72\%$ regret; $89.9\%$ versus $65.7\%$ action-optimality), and planning with arrival rates
-wrong by a factor of ten still beats learning from scratch.
+No standard attribution survives intact, and in three families the customary metric is what
+conceals the failure. \textbf{(i)~Informed search:} the three ``different'' heuristics in a
+standard routing study are positive scalar multiples of one function, so greedy best-first is
+provably invariant to the choice (identical paths on 10/10 queries) and $\mathrm{A}^*$ over them is
+a one-parameter weight sweep ($\rho = -1.0000$ against both node count and search time).
+Nodes-expanded ranks $\mathrm{A}^*$ above uniform-cost search by $2.15\times$; wall clock ranks it
+\emph{below} by $6.18\times$, because $91.6\%$ of its runtime is a one-off $O(|E|)$ calibration the
+metric prices at zero. The fastest exact method we measure is uninformed.
+\textbf{(ii)~Constraint satisfaction:} ordering and propagation cut node counts exactly as folklore
+predicts ($-3$ to $-5$ nodes, $p \le 10^{-4}$) while running $12$--$14\times$ slower; past the point
+where search stops completing, the node metric inverts and measures throughput rather than pruning.
+\textbf{(iii)~Population-based search:} thirty non-communicating particles are statistically
+indistinguishable from random search ($p = 0.22$) and a single particle is \emph{worse}
+($p < 10^{-4}$); the social term alone, at the same budget and the same random stream, buys $7.6$
+minutes of every student's expected wait. The population is not the mechanism, the communication
+channel is. \textbf{(iv)~Reinforcement learning:} on identical data --- same seeds, same
+400{,}000 transitions, same order --- planning on an estimated model beats a \emph{tuned}
+model-free learner ($1.74\%$ versus $2.72\%$ regret, $89.9\%$ versus $65.7\%$ action-optimality),
+and planning with arrival rates wrong tenfold still wins.
 
-We give a common account of the four results: in each family the operative component is one whose
-cost is paid once and reused many times --- an amortisable precomputation or a broadcast
-information channel --- while the eponym's cost is paid per unit of work, and each subfield's
-customary metric is precisely the one that declines to charge for reuse. We close with a
-metric-audit rule and release the testbed, code, and every number in this paper.
+The four share a structure: the operative component is always one whose cost is paid once and
+reused many times --- an amortisable precomputation, a broadcast channel --- while the eponym's is
+paid per unit of work, and each subfield's customary metric is the one that declines to charge for
+reuse. We give a metric-audit rule and release the testbed, code, and every number in this paper.
 \end{abstract}
 
 \section{Introduction}

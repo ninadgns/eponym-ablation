@@ -2,18 +2,31 @@
 
 ## `abstract.txt`
 
-Paste into arXiv's **Abstract** metadata field. 1895 characters, against the field's 1920 limit.
+Paste into arXiv's **Abstract** metadata field. 1807 characters, against the field's hard limit of
+1920 — [arXiv rejects anything longer](https://info.arxiv.org/help/prep.html). The ~110 characters
+of slack are deliberate: an earlier version sat at 1895, which is within the limit but close enough
+that any edit to the paper's abstract could push this past it without an obvious signal.
 
 The field is plain text: no TeX macros, no font commands, no math mode, no Unicode. This file is
 pure ASCII with straight quotes, `--` for dashes, and `2.15x` / `p < 1e-4` / `O(|E|)` spelled out.
-It is deliberately **not** the PDF's abstract, which is 3234 characters and keeps the full claim
-set, the Spearman result, and the action-optimality figures. Both are accurate; this one is cut to
-fit the form.
+It is deliberately **not** the PDF's abstract, which is 2796 characters of TeX and keeps the
+$\rho = -1.0000$ result, the 10/10 invariance check, the CSP significance levels, and the
+action-optimality figures. Both are accurate; this one is cut to fit the form.
 
 If you edit the paper's abstract, this file does not follow automatically. Re-check with:
 
 ```bash
 python3 -c "t=open('paper/submission/abstract.txt').read().rstrip('\n'); print(len(t), 'chars')"
+```
+
+arXiv also rejects Unicode in this field and strips carriage returns not followed by leading
+whitespace, so keep it ASCII and keep the paragraph breaks as bare blank lines. To verify both:
+
+```bash
+python3 -c "
+t=open('paper/submission/abstract.txt').read().rstrip('\n')
+print(len(t),'chars', 'OK' if len(t)<=1920 else 'TOO LONG')
+print('non-ascii:', [c for c in t if ord(c)>127] or 'none')"
 ```
 
 ## Submitting
