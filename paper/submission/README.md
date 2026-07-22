@@ -20,15 +20,14 @@ python3 -c "t=open('paper/submission/abstract.txt').read().rstrip('\n'); print(l
 
 - **Primary category:** cs.AI. Reasonable cross-list: cs.NE (the PSO/GA ablation) or cs.SE.
 - **Upload:** the `paper/` directory's `.tex`, `.bbl`, `refs.bib`, and the two `\input` files
-  (`section_csp.tex`, `appendix_sweep.tex`). arXiv does **not** run BibTeX, so `main.bbl` must be
-  in the tarball — it is tracked in git for exactly this reason. Do not upload `main.pdf`; arXiv
-  builds from source.
+  (`section_csp.tex`, `appendix_sweep.tex`) — all of which are on **this branch only**; main
+  carries the code and `repro/`. arXiv does **not** run BibTeX, so `main.bbl` must be in the
+  tarball — it is tracked in git for exactly this reason. `main.pdf` is untracked and must not be
+  uploaded; arXiv builds from source and rejects a PDF bundled with TeX input. Exclude the hidden
+  `.gitignore` too: arXiv rejects dotfiles.
 - **Endorsement:** a first cs.AI submission may need one. Any author with cs.AI arXiv history can
   endorse.
 - **Institutional email:** register/verify the DU address; arXiv gates submission on it.
-- **Before you submit:** make the repository public, or the reproducibility URL in the paper 404s.
-
-  ```bash
-  gh repo edit ninadgns/eponym-ablation --visibility public \
-    --accept-visibility-change-consequences
-  ```
+- **Repository visibility:** ~~make the repository public~~ — done, the reproducibility URL
+  resolves. (The `--accept-visibility-change-consequences` flag written here originally is not in
+  gh 2.46, which is what this machine runs; there the flag is just `--visibility public`.)
