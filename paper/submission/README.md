@@ -2,8 +2,8 @@
 
 ## `abstract.txt`
 
-Paste into arXiv's **Abstract** metadata field. 1807 characters, against the field's hard limit of
-1920 — [arXiv rejects anything longer](https://info.arxiv.org/help/prep.html). The ~110 characters
+Paste into arXiv's **Abstract** metadata field. 1847 characters, against the field's hard limit of
+1920 — [arXiv rejects anything longer](https://info.arxiv.org/help/prep.html). The ~70 characters
 of slack are deliberate: an earlier version sat at 1895, which is within the limit but close enough
 that any edit to the paper's abstract could push this past it without an obvious signal.
 

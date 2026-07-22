@@ -65,8 +65,8 @@ Min-conflicts expands a median of 1.0 node at 0.08\,ms --- as fast as chronologi
 per attempt and $13.5$ nodes cheaper --- and over all 400 runs averages 119 nodes and 0.044\,s
 against 444,111 nodes and 3.15\,s: $3{,}700\times$ fewer nodes and $72\times$ less time, for
 25 solved instances against 27. Both solve rates are low in absolute terms --- $31\%$ and $34\%$ of
-400 runs, because most instances in this sweep are out of reach for every solver at a 5\,s budget
---- but min-conflicts reaches $93\%$ of chronological backtracking's solve count for $0.03\%$ of its
+each solver's 80 runs, because most instances in this sweep are out of reach for every solver at a
+5\,s budget --- but min-conflicts reaches $93\%$ of chronological backtracking's solve count for $0.03\%$ of its
 search cost, by carrying one complete (initially infeasible) assignment forward and repairing it
 rather than rebuilding a partial assignment prefix on every backtrack.
 

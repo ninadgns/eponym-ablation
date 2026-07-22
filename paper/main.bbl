@@ -1,4 +1,4 @@
-\begin{thebibliography}{37}
+\begin{thebibliography}{39}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -24,6 +24,12 @@ Ronen~I. Brafman and Moshe Tennenholtz.
 \newblock \emph{Journal of Machine Learning Research}, 3:\penalty0 213--231,
   2002.
 
+\bibitem[Brown and Forsythe(1974)]{brown1974robust}
+Morton~B. Brown and Alan~B. Forsythe.
+\newblock Robust tests for the equality of variances.
+\newblock \emph{Journal of the American Statistical Association}, 69\penalty0
+  (346):\penalty0 364--367, 1974.
+
 \bibitem[Burns et~al.(2012)Burns, Hatem, Leighton, and
   Ruml]{burns2012implementing}
 Ethan Burns, Matthew Hatem, Michael~J. Leighton, and Wheeler Ruml.
@@ -35,6 +41,12 @@ Ethan Burns, Matthew Hatem, Michael~J. Leighton, and Wheeler Ruml.
 Rina Dechter and Judea Pearl.
 \newblock Generalized best-first search strategies and the optimality of {A*}.
 \newblock \emph{Journal of the ACM}, 32\penalty0 (3):\penalty0 505--536, 1985.
+
+\bibitem[Dijkstra(1959)]{dijkstra1959note}
+Edsger~W. Dijkstra.
+\newblock A note on two problems in connexion with graphs.
+\newblock \emph{Numerische Mathematik}, 1\penalty0 (1):\penalty0 269--271,
+  1959.
 
 \bibitem[Eshelman and Schaffer(1993)]{eshelman1993real}
 Larry~J. Eshelman and J.~David Schaffer.

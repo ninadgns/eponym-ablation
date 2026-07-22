@@ -51,9 +51,10 @@ a one-parameter weight sweep ($\rho = -1.0000$ against both node count and searc
 Nodes-expanded ranks $\mathrm{A}^*$ above uniform-cost search by $2.15\times$; wall clock ranks it
 \emph{below} by $6.18\times$, because $91.6\%$ of its runtime is a one-off $O(|E|)$ calibration the
 metric prices at zero. The fastest exact method we measure is uninformed.
-\textbf{(ii)~Constraint satisfaction:} ordering and propagation cut node counts exactly as folklore
-predicts ($-3$ to $-5$ nodes, $p \le 10^{-4}$) while running $12$--$14\times$ slower; past the point
-where search stops completing, the node metric inverts and measures throughput rather than pruning.
+\textbf{(ii)~Constraint satisfaction:} ordering and propagation cut node counts largely as folklore
+predicts ($-3$ to $-5$ nodes, $p \le 10^{-4}$; minimum-remaining-values alone cuts none,
+$p = 0.27$) while running $12$--$14\times$ slower; past the point where search stops completing,
+the node metric inverts and measures throughput rather than pruning.
 \textbf{(iii)~Population-based search:} thirty non-communicating particles are statistically
 indistinguishable from random search ($p = 0.22$) and a single particle is \emph{worse}
 ($p < 10^{-4}$); the social term alone, at the same budget and the same random stream, buys $7.6$
@@ -233,9 +234,9 @@ Signal control            & Reinforcement learning & the learning         & 400{
 \paragraph{Problem 1 --- multi-factor routing.} Shortest-path queries on the Dhaka OpenStreetMap
 drive network (55,009 nodes, 137,529 directed edges) under a multi-factor edge cost that
 combines length, road class, congestion, surface quality, and a traveller-context term. Six search
-algorithms (uniform-cost, Dijkstra, bidirectional uniform-cost, $\mathrm{A}^*$, weighted
-$\mathrm{A}^*$, greedy best-first) run over three named heuristics, giving twelve configurations on
-each of ten randomly drawn landmark pairs.
+algorithms (uniform-cost, Dijkstra \citep{dijkstra1959note}, bidirectional uniform-cost,
+$\mathrm{A}^*$, weighted $\mathrm{A}^*$, greedy best-first) run over three named heuristics, giving
+twelve configurations on each of ten randomly drawn landmark pairs.
 
 \paragraph{Problem 2 --- fuel-crisis allocation.} Assigning $n$ vehicles to
 (station, pump, time-slot) triples under fuel-type compatibility, vehicle range, pump exclusivity,
@@ -281,10 +282,11 @@ Where an arm is stochastic we report paired results over seeds and test them.
 
 \paragraph{Statistics.} Comparisons over seeds use the Wilcoxon signed-rank test
 \citep{wilcoxon1945individual} for location and Levene's test \citep{levene1960robust} for
-dispersion --- specifically the Brown--Forsythe variant, which centres on the median rather than
-the mean --- on 30 paired seeds for Problem~3 and 5 for Problem~4. We report $p$-values and make no
-claim of ``better'' without a test. We report disconfirmations of our own expectations in the same
-register as confirmations; three of the four sections below contain at least one.
+dispersion --- specifically the Brown--Forsythe variant \citep{brown1974robust}, which centres on
+the median rather than the mean --- on 30 paired seeds for Problem~3 and 5 for Problem~4. We report
+$p$-values and make no claim of ``better'' without a test. We report disconfirmations of our own
+expectations in the same register as confirmations; three of the four sections below contain at
+least one.
 
 \paragraph{Provenance.} The four problems and their reference implementations originate as
 independent coursework assignments, each specified before its results were known and each carrying
@@ -359,12 +361,12 @@ monotone function of it.
 not twelve, because \texttt{dijkstra()} in this codebase is \texttt{return ucs(...)} with the result
 label overwritten (\texttt{algorithms.py:120--133}; its docstring says ``same implementation as UCS
 here \dots\ included as a separate entrypoint for coursework naming''). An earlier draft of this
-paper reported the two as separate configurations with different timings --- 295.3\,ms against
-303.4\,ms --- which was pure timing noise on identical code presented as a comparison. We merge
-them. The study describes ``six search algorithms''; it has five distinct ones behind six
-entry points. This is the same failure as the heuristic collapse, on the other axis of the grid,
-and our own audit rule (\S\ref{sec:synthesis}) did not initially catch it because we applied the
-rule only to the heuristics.
+paper reported the two as separate configurations with different timings, which was pure timing
+noise on identical code presented as a comparison; in the run reported here the same two entry
+points come out at 282.7\,ms and 279.0\,ms. We merge them. The study describes ``six search
+algorithms''; it has five distinct ones behind six entry points. This is the same failure as the
+heuristic collapse, on the other axis of the grid, and our own audit rule (\S\ref{sec:synthesis})
+did not initially catch it because we applied the rule only to the heuristics.
 
 \begin{table}[t]
 \centering
@@ -445,7 +447,7 @@ Only \texttt{ucs()} and \texttt{weighted\_astar()} are free of post-processing.
 \texttt{:419}), because neither carries a $g$-value to the target the way uniform-cost search and
 $\mathrm{A}^*$ do, and both must therefore re-derive the path cost. That call is
 $O(\text{path length})$ and costs 0.80\,ms and 0.88\,ms on average over the ten pairs
-(\texttt{repro/path\_cost\_probe.py}) --- negligible beside $\mathrm{A}^*$'s
+(\texttt{repro/\allowbreak path\_cost\_probe.py}) --- negligible beside $\mathrm{A}^*$'s
 $O(\text{path length}^2)$ term, and sub-millisecond quantities on this machine are not stable to
 two digits anyway, so we leave the call in place rather than subtract it and claim a precision we
 do not have. $\mathrm{A}^*$'s post-processing is the one that matters: a median of
@@ -827,7 +829,8 @@ near-optimal control \citep{kearns2002near, brafman2002rmax, mania2019certainty}
 
 If the model is what matters, the operational question is how wrong it may be before learning from
 scratch is preferable --- a real question here, because Dhaka does not publish intersection arrival
-rates. We planned with assumed arrival rates scaled by $\lambda \in \{0, 0.1, \dots, 2.0\}$ against
+rates. We planned with assumed arrival rates scaled by
+$\lambda \in \{0,\, 0.1,\, 0.25,\, 0.5,\, 0.75,\, 1,\, 1.25,\, 1.5,\, 2\}$ against
 the truth and compared to the tuned learner trained on 400,000 real transitions.
 
 The crossing point is stark. Multipliers from $0.1$ to $2.0$ --- rates wrong by a factor of ten too
